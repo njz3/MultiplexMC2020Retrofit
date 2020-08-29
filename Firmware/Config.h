@@ -4,9 +4,9 @@
 
 #define VERSION "0.1"
 
-#ifdef ARDUINO_AVR_MEGA2560
+#if defined(ARDUINO_AVR_MEGA2560)
 #define MC2020_MEGA
-#elif ARDUINO_AVR_NANO
+#elif defined(ARDUINO_AVR_NANO)
 #define MC2020_NANO
 #else
 #error "Unsupported board. Only Mega2560 or Nano 328P"
@@ -14,12 +14,22 @@
 
 
 #define OUTPUT_PIN (10)
-#ifdef MC2020_MEGA
+
+#if defined(MC2020_MEGA)
+
 #define MAX_CHANNELS (16)
 #define NB_CHANNELS (7)
-#elif MC2020_NANO
+
+#elif defined(MC2020_NANO)
+
 #define MAX_CHANNELS (8)
 #define NB_CHANNELS (6)
+
+#else
+
+#define MAX_CHANNELS (8)
+#define NB_CHANNELS (6)
+
 #endif
 
 const float SCALE_mV_per_ADC = (5000.0f/1023.0f);
