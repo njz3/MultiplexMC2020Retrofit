@@ -1,10 +1,9 @@
 //Taken from Christopher Schirner
 // https://github.com/schinken/PPMEncoder
-
-#ifndef _PPMEncoder_h_
-#define _PPMEncoder_h_
+#pragma once
 
 #if defined(ARDUINO) && ARDUINO >= 100
+// Arduino Framework
 #include "Arduino.h"
 #else
 #include "WProgram.h"
@@ -24,9 +23,10 @@ enum PPM_STATE : uint8_t
 
 class PPMEncoder {
   public:
-    static const uint16_t MAX_CHANNEL = 9;
+    static const uint16_t MAX_CHANNEL = 10;
     static const uint16_t MIN = 1000;
-    static const uint16_t MAX = 2000;
+    static const uint16_t MED = 1600;
+    static const uint16_t MAX = 2200;
 
     void setChannel(uint8_t channel, uint16_t value);
     void setChannelPercent(uint8_t channel, uint8_t percent);
@@ -48,5 +48,3 @@ class PPMEncoder {
 };
 
 extern PPMEncoder ppmEncoder;
-
-#endif

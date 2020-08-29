@@ -3,11 +3,13 @@
 
 #include "RC_PPMEncoder.h"
 
+#include "Config.h"
+
 // UNUSED: the macro sets or clears the appropriate bit in port D if the pin is less than 8 or port B if between 8 and 13
 //#define fastWrite(_pin_, _state_) ( _pin_ < 8 ? (_state_ ?  PORTD |= 1 << _pin_ : PORTD &= ~(1 << _pin_ )) : (_state_ ?  PORTB |= 1 << (_pin_ -8) : PORTB &= ~(1 << (_pin_ -8)  )))
 
 // Macro to use PORTD access for D10 on Mega2560
-#define FAST_WRITE_D10_MEGA2560
+//#define FAST_WRITE_D10_MEGA2560
 
 // Singleton
 PPMEncoder ppmEncoder;
@@ -51,6 +53,8 @@ void PPMEncoder::begin(uint8_t pin, uint8_t ch) {
 }
 
 void PPMEncoder::setChannel(uint8_t channel, uint16_t value) {
+  if (channel>=numChannels)
+    return;
   channels[channel] = constrain(value, PPMEncoder::MIN, PPMEncoder::MAX);
 }
 

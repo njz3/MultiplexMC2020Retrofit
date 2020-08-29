@@ -2,27 +2,47 @@
 #ifndef _DISPLAY_H_
 #define _DISPLAY_H_
 
-#include <U8g2lib.h>
-#include <U8x8lib.h>
+#include <Arduino.h>
+#include "Config.h"
 
-#ifdef U8X8_HAVE_HW_SPI
-#include <SPI.h>
-#endif
-
-// Graphics mode
-// Rotation = U8G2_R1 for 90°
-//U8G2_SSD1327_MIDAS_128X128_2_HW_I2C u8g2(/*rotation, [reset [, clock, data]]) [page buffer, size = 256 bytes]*/);
-
-// Text mode
-U8X8_SSD1327_MIDAS_128X128_HW_I2C u8x8(/*[reset [, clock, data]]*/);
+#define USE_U8X8
+//#define USE_U8G2
 
 class CDisplay {
-  public:
-
-    void begin();
-
   private:
+    int fontRowSize = 1;
+    int col;
+    int row;
+    char header[20];
+    char footer[20];
 
+  public:   
+    void begin();
+    void loop();
+
+    void cleanup(void);
+    void draw_bar(uint8_t c, uint8_t is_inverse);
+    void draw_ascii_row(uint8_t r, int start);
+    void drawString(int col, int row, char *str);
+    void draw2x2String(int col, int row, char *str);
+
+    void print(const String& str);
+    void print(const char *str);
+    void println(const String& str);
+    void println(const char *str);
+    void setCursor(int col, int row);
+    void setSmallFont();
+    void setNormalFont();
+    void setBigFont();
+    void clear();
+    void clearLine(int row);
+
+    int getRow() { return row; }
+    int getCol() { return col; }
+    int getFontRawSize() { return fontRowSize; }
+    void setHeader(char* str) { strncpy(header, "  MC2020  V" VERSION "  ", sizeof(header)-1); header[16]=0; }
+    void setFooter(char* str) { strncpy(footer, "  MC2020  V" VERSION "  ", sizeof(footer)-1); footer[16]=0; }
+    
 };
 
 extern CDisplay Display;
