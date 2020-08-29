@@ -14,8 +14,22 @@
 
 
 #define OUTPUT_PIN (10)
+#ifdef MC2020_MEGA
 #define MAX_CHANNELS (16)
 #define NB_CHANNELS (7)
+#elif MC2020_NANO
+#define MAX_CHANNELS (8)
+#define NB_CHANNELS (6)
+#endif
+
+const float SCALE_mV_per_ADC = (5000.0f/1023.0f);
+const float SCALE_ADC_per_mV = (1023.0f/5000.0f);
+
+const int MIN_MANCHES_mV = 1800;
+const int MAX_MANCHES_mV = 3200;
+
+const int MIN_AUX_mV = 0000;
+const int MAX_AUX_mV = 5000;
 
 
 namespace Config {
@@ -39,11 +53,12 @@ enum COMSPEED {
 // Note: USB based com (Leonardo, Due) can go up to 2000000 (2Mbps)
 #define PCSERIAL_BAUDRATE (COM1000000)
 
-#define CONFIG_CHANNEL_INVERTED (1<<0)
-#define CONFIG_CHANNEL_COUPLING (1<<1)
-#define CONFIG_CHANNEL_DUALRATE (1<<2)
+#define CONFIG_CHANNEL_OPT_INVERTED (1<<0)
+#define CONFIG_CHANNEL_OPT_COUPLING (1<<1)
+#define CONFIG_CHANNEL_OPT_DUALRATE (1<<2)
+#define CONFIG_CHANNEL_OPT_POWERLAW (1<<3)
 
-#define CONFIG_SCREEN_PRESENT (1<<0)
+#define CONFIG_CTL_SCREEN_PRESENT (1<<0)
 
 
 // Non-volatile (eeprom) config, bytes field only
@@ -60,10 +75,14 @@ typedef struct {
   int med_mV;
   // Maximum voltage
   int max_mV;
-  // Minimum ms output
-  int min_ms;
-  // Maximum ms output
-  int max_ms;
+  // Minimum us output
+  int min_us;
+  // Maximum us output
+  int max_us;
+  // For dual rate or coupling: scale factor
+  float rate;
+  // For coupling
+  int master_channel;
 } CHANNEL_CONFIG;
 
 // Non-volatile (eeprom) config, bytes field only
@@ -97,7 +116,7 @@ typedef struct {
   
 } EEPROM_CONFIG;
 
-
+extern char* ChannelNames[];
 extern EEPROM_CONFIG ConfigFile;
 
 int SaveConfigToEEPROM();

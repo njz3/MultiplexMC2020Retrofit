@@ -9,6 +9,17 @@ namespace Config {
 
 EEPROM_CONFIG ConfigFile;
 
+char* ChannelNames[] = {
+  "Prof. ", 
+  "Direc.",
+  "Gaz   ",
+  "Ailern",
+  "Trim1 ",
+  "Trim2 ",
+  "Flap  ",
+  "Train "
+};
+
 int SaveConfigToEEPROM()
 {
   if (EEPROM.length()<sizeof(EEPROM_CONFIG)) {
@@ -61,19 +72,37 @@ void ResetConfig()
   // PPM PULSE MODULE
   ConfigFile.frame_length_us = 20000;
   ConfigFile.interval_us = 300;
-  ConfigFile.min_pulse_us = 1000;
-  ConfigFile.max_pulse_us = 2200;
+  ConfigFile.min_pulse_us = 800;
+  ConfigFile.max_pulse_us = 2400;
   ConfigFile.NBchannels = 7;
 
   for(int i=0; i<MAX_CHANNELS; i++) {
     ConfigFile.channels[i].channel = i+1;
     ConfigFile.channels[i].options = 0;
-    strncpy(ConfigFile.channels[i].name, "", 9);
-    ConfigFile.channels[i].min_mV = 0;
-    ConfigFile.channels[i].med_mV = 2500;
-    ConfigFile.channels[i].max_mV = 5000;
-    ConfigFile.channels[i].min_ms = 1000;
-    ConfigFile.channels[i].max_ms = 2200;
+
+    if (i<8) {
+      strncpy(ConfigFile.channels[i].name, ChannelNames[i], 9);
+    } else {
+      char buf[20];
+      sprintf(buf, "C%d", i+1);
+      strncpy(ConfigFile.channels[i].name, buf, 9);
+    }    
+    
+    ConfigFile.channels[i].rate = 1.0f;
+    ConfigFile.channels[i].master_channel = 0;
+    if (i<4) {
+      ConfigFile.channels[i].min_mV = MIN_MANCHES_mV;
+      ConfigFile.channels[i].med_mV = (MIN_MANCHES_mV + MAX_MANCHES_mV)>>1;
+      ConfigFile.channels[i].max_mV = MAX_MANCHES_mV;
+      ConfigFile.channels[i].min_us = 1000;
+      ConfigFile.channels[i].max_us = 2200;
+    } else {
+      ConfigFile.channels[i].min_mV = MIN_AUX_mV;
+      ConfigFile.channels[i].med_mV = (MIN_AUX_mV + MAX_AUX_mV)>>1;
+      ConfigFile.channels[i].max_mV = MAX_AUX_mV;
+      ConfigFile.channels[i].min_us = 1000;
+      ConfigFile.channels[i].max_us = 2200;
+    }
   }
 }
 

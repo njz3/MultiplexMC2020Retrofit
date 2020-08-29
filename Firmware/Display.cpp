@@ -43,7 +43,7 @@ void CDisplay::begin() {
   #endif
 
   strncpy(header, "  MC2020  V" VERSION "  ", sizeof(header));
-  strncpy(footer, "  <->      OK   ", sizeof(footer));
+  strncpy(footer, "   B. Maurin    ", sizeof(footer));
 }
 
 
@@ -62,6 +62,30 @@ void CDisplay::cleanup(void)
   u8x8.setCursor(0,1);
   col = 0;
   row = 1;
+}
+
+void CDisplay::refreshHeader()
+{
+  setSmallFont();
+  u8x8.setCursor(0,0);
+  u8x8.inverse();
+  u8x8.print(header);
+  u8x8.noInverse();
+
+  setNormalFont();
+  u8x8.setCursor(col, row);
+}
+
+void CDisplay::refreshFooter()
+{
+  setSmallFont();
+  u8x8.setCursor(0,15);
+  u8x8.inverse();
+  u8x8.print(footer);
+  u8x8.noInverse();
+
+  setNormalFont();
+  u8x8.setCursor(col, row);
 }
 
 void CDisplay::draw_bar(uint8_t c, uint8_t is_inverse)
@@ -88,28 +112,17 @@ void CDisplay::draw_ascii_row(uint8_t r, int start)
   }
 }
 
-void CDisplay::print(const String& str)
-{
-  char buf[20];
-  str.toCharArray(buf, 20);
-  header[16]=0;
-  u8x8.print(buf);
-  col+= strlen(buf);
-}
-
 void CDisplay::print(const char *str)
 {
   u8x8.print(str);
   col+= strlen(str);
 }
-
-void CDisplay::println(const String& str)
+void CDisplay::print(const String& str)
 {
-  u8x8.setCursor(col, row);
-  print(str);
-  col = 0;
-  row = (row+2); // Increase and loop back
-  if (row>14) row = 1;
+  char buf[20];
+  str.toCharArray(buf, 20);
+  buf[16]=0;
+  print(buf);
 }
 
 void CDisplay::println(const char *str)
@@ -120,6 +133,27 @@ void CDisplay::println(const char *str)
   row = (row+2); // Increase and loop back
   if (row>14) row = 1;
 }
+void CDisplay::println(const String& str)
+{
+  char buf[20];
+  str.toCharArray(buf, 20);
+  buf[16]=0;
+  println(buf);
+}
+
+void CDisplay::setHeader(const String& str) {
+  char buf[20];
+  str.toCharArray(buf, 20);
+  buf[16]=0;
+  setHeader(buf);
+}
+
+void CDisplay::setFooter(const String& str) { 
+  char buf[20];
+  str.toCharArray(buf, 20);
+  buf[16]=0;
+  setFooter(buf);
+}
 
 void CDisplay::setCursor(int col, int row)
 {
@@ -128,7 +162,7 @@ void CDisplay::setCursor(int col, int row)
   u8x8.setCursor(col, row);
 }
 
-void CDisplay::clear()
+void CDisplay::clearAll()
 {
    u8x8.clear();
    u8x8.setCursor(0, 0);
@@ -142,6 +176,12 @@ void CDisplay::clearLine(int row)
   }
   if (fontRowSize==3) {
     u8x8.clearLine(row+2);
+  }
+}
+void CDisplay::clearBody()
+{
+  for(int row=1; row<15; row++) {
+    u8x8.clearLine(row);
   }
 }
 

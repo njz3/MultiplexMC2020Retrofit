@@ -15,7 +15,6 @@ PPMEncoder ppmEncoder;
 uint16_t PPMEncoder::PPM_INTERVAL_LENGTH_us = 300;
 uint16_t PPMEncoder::PPM_FRAME_LENGTH_us = 20000;
 uint16_t PPMEncoder::MIN_us = 1000;
-uint16_t PPMEncoder::MED_us = 1600;
 uint16_t PPMEncoder::MAX_us = 2200;
 
 void PPMEncoder::begin(uint8_t pin) {
@@ -55,6 +54,12 @@ void PPMEncoder::begin(uint8_t pin, uint8_t ch) {
   
   // Enable interrupts
   sei();
+}
+
+void PPMEncoder::setNbChannel(uint8_t numChannels) {
+  if (numChannels>=MAX_CHANNEL)
+    return;
+  this->numChannels = numChannels;
 }
 
 void PPMEncoder::setChannel(uint8_t channel, uint16_t value) {
