@@ -120,6 +120,7 @@ uint16_t ReadButtons()
 int adc_vals[16];
 int adc_mv[16];
 int chan_mv[16];
+int chanctr_mv[16];
 int chan_ms[16];
 int nb_adc = 0;
 
@@ -151,7 +152,46 @@ void ReadValues() {
   for(int i=0; i<nb_adc; i++) {
     adc_mv[i] = (int)((float)adc_vals[i]*SCALE_mV_per_ADC);
     chan_mv[i] = constrain(adc_mv[i], Config::ConfigFile.channels[i].min_mV, Config::ConfigFile.channels[i].max_mV);
+
+    /*
+    // Power law ? Amplify small difference to center
+    if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_POWERLAW)!=0) {
+      float range = (float)(Config::ConfigFile.channels[i].max_mV - Config::ConfigFile.channels[i].min_mV);
+      float normalized = (float)(chanctr_mv[i] / range);
+      float scaled = pow(normalized, Config::ConfigFile.channels[idx].rate)* 2500.0f;
+    }
+    */
+    int min_us = Config::ConfigFile.channels[i].min_us;
+    int max_us = Config::ConfigFile.channels[i].max_us;
+    
+    // Dual rate ? Restrict to a smaller range
+    if ((Config::ConfigFile.channels[i].options & CONFIG_CHANNEL_OPT_DUALRATE)!=0) {
+      int med = (min_us + max_us)>>1;
+      int half_range = (max_us - min_us)>>2;
+      min_us = med - half_range;
+      max_us = med + half_range;
+    }
+
+    // Power law ? Amplify small difference to center
+    if ((Config::ConfigFile.channels[i].options & CONFIG_CHANNEL_OPT_DUALRATE)!=0) {
+      int med = (min_us + max_us)>>1;
+      int half_range = (max_us - min_us)>>2;
+      min_us = med - half_range;
+      max_us = med + half_range;
+    }
+
+    // Inverted ? Invert min and max
+    if ((Config::ConfigFile.channels[i].options & CONFIG_CHANNEL_OPT_INVERTED)!=0) {
+      min_us = Config::ConfigFile.channels[i].max_us;
+      max_us = Config::ConfigFile.channels[i].min_us;
+    }
     chan_ms[i] = map(chan_mv[i], Config::ConfigFile.channels[i].min_mV, Config::ConfigFile.channels[i].max_mV, Config::ConfigFile.channels[i].min_us, Config::ConfigFile.channels[i].max_us);
+    // Add trim offset
+    chan_ms[i] += Config::ConfigFile.channels[i].trim_us;
+    if (chan_ms[i]<Config::ConfigFile.channels[i].min_us)
+      chan_ms[i] = Config::ConfigFile.channels[i].min_us;
+    if (chan_ms[i]>Config::ConfigFile.channels[i].max_us)
+      chan_ms[i] = Config::ConfigFile.channels[i].max_us;
     
     // Set PPM value
     ppmEncoder.setChannel(i, chan_ms[i]);
@@ -232,33 +272,35 @@ void DisplayChannels() {
   char buff[20];
   sprintf(buff, "A=%4dmV", (int)(adc_mv[idx]));
   Display.println(buff);
-  sprintf(buff, "C=%4dmV", (int)(chan_mv[idx]));
-  Display.println(buff);
+  //sprintf(buff, "C=%4dmV", (int)(chan_mv[idx]));
+  //Display.println(buff);
   sprintf(buff, "T=%4dus", (int)(chan_ms[idx]));
   Display.println(buff);
   
-  sprintf(buff, " Min.C=%4dmV", Config::ConfigFile.channels[idx].min_mV);
+  sprintf(buff, " Min.C=%4dmV  ", Config::ConfigFile.channels[idx].min_mV);
   Display.println(buff);
-  sprintf(buff, " Max.C=%4dmV", Config::ConfigFile.channels[idx].max_mV);
+  sprintf(buff, " Max.C=%4dmV  ", Config::ConfigFile.channels[idx].max_mV);
   Display.println(buff);
   
-  sprintf(buff, " Min.T=%4dus", Config::ConfigFile.channels[idx].min_us);
+  sprintf(buff, " Min.T=%4dus  ", Config::ConfigFile.channels[idx].min_us);
   Display.println(buff);
-  sprintf(buff, " Max.T=%4dus", Config::ConfigFile.channels[idx].max_us);
+  sprintf(buff, " Max.T=%4dus  ", Config::ConfigFile.channels[idx].max_us);
   Display.println(buff);
- 
-  if (currentEditLine>=4)
+  sprintf(buff, " Trim =%4dus  ", Config::ConfigFile.channels[idx].trim_us);
+  Display.println(buff);
+  
+  if (currentEditLine>=5)
     currentEditLine = 0;
-  Display.setCursor(0,(currentEditLine<<1)+7);
+  Display.setCursor(0,(currentEditLine<<1)+5);
   Display.print(">");
 
   switch(currentEditLine) {
     case 0: {
       if ((currbuttons & BUTTONS_PRESSED::BTN_PLUS)!=0) {
-        Config::ConfigFile.channels[idx].min_mV += 10;
+        Config::ConfigFile.channels[idx].min_mV += STEP_TUNING_mV;
       }
       if ((currbuttons & BUTTONS_PRESSED::BTN_MINUS)!=0) {
-        Config::ConfigFile.channels[idx].min_mV -= 10;
+        Config::ConfigFile.channels[idx].min_mV -= STEP_TUNING_mV;
       }
       if (Config::ConfigFile.channels[idx].min_mV<0)
         Config::ConfigFile.channels[idx].min_mV = 0;
@@ -268,10 +310,10 @@ void DisplayChannels() {
     break;
     case 1: {
       if ((currbuttons & BUTTONS_PRESSED::BTN_PLUS)!=0) {
-        Config::ConfigFile.channels[idx].max_mV += 10;
+        Config::ConfigFile.channels[idx].max_mV += STEP_TUNING_mV;
       }
       if ((currbuttons & BUTTONS_PRESSED::BTN_MINUS)!=0) {
-        Config::ConfigFile.channels[idx].max_mV -= 10;
+        Config::ConfigFile.channels[idx].max_mV -= STEP_TUNING_mV;
       }
       if (Config::ConfigFile.channels[idx].max_mV<Config::ConfigFile.channels[idx].min_mV)
         Config::ConfigFile.channels[idx].max_mV = Config::ConfigFile.channels[idx].min_mV;
@@ -279,12 +321,13 @@ void DisplayChannels() {
         Config::ConfigFile.channels[idx].max_mV = 5000;
     }
     break;
+    
     case 2: {
       if ((currbuttons & BUTTONS_PRESSED::BTN_PLUS)!=0) {
-        Config::ConfigFile.channels[idx].min_us += 10;
+        Config::ConfigFile.channels[idx].min_us += STEP_TUNING_us;
       }
       if ((currbuttons & BUTTONS_PRESSED::BTN_MINUS)!=0) {
-        Config::ConfigFile.channels[idx].min_us -= 10;
+        Config::ConfigFile.channels[idx].min_us -= STEP_TUNING_us;
       }
       if (Config::ConfigFile.channels[idx].min_us<0)
         Config::ConfigFile.channels[idx].min_us = 0;
@@ -294,10 +337,10 @@ void DisplayChannels() {
     break;
     case 3: {
       if ((currbuttons & BUTTONS_PRESSED::BTN_PLUS)!=0) {
-        Config::ConfigFile.channels[idx].max_us += 10;
+        Config::ConfigFile.channels[idx].max_us += STEP_TUNING_us;
       }
       if ((currbuttons & BUTTONS_PRESSED::BTN_MINUS)!=0) {
-        Config::ConfigFile.channels[idx].max_us -= 10;
+        Config::ConfigFile.channels[idx].max_us -= STEP_TUNING_us;
       }
       if (Config::ConfigFile.channels[idx].max_us<Config::ConfigFile.channels[idx].min_us)
         Config::ConfigFile.channels[idx].max_us = Config::ConfigFile.channels[idx].min_us;
@@ -305,6 +348,40 @@ void DisplayChannels() {
         Config::ConfigFile.channels[idx].max_us = 5000;
     }
     break;
+    case 4: {
+      if ((currbuttons & BUTTONS_PRESSED::BTN_PLUS)!=0) {
+        Config::ConfigFile.channels[idx].trim_us += STEP_TUNING_us;
+      }
+      if ((currbuttons & BUTTONS_PRESSED::BTN_MINUS)!=0) {
+        Config::ConfigFile.channels[idx].trim_us -= STEP_TUNING_us;
+      }
+      if (Config::ConfigFile.channels[idx].trim_us<-Config::ConfigFile.channels[idx].min_mV)
+        Config::ConfigFile.channels[idx].trim_us = -Config::ConfigFile.channels[idx].min_mV;
+      if (Config::ConfigFile.channels[idx].trim_us>Config::ConfigFile.channels[idx].max_mV)
+        Config::ConfigFile.channels[idx].trim_us = Config::ConfigFile.channels[idx].max_mV;
+    }
+    break;
+    
+    case 5: {
+      if ((currbuttons & BUTTONS_PRESSED::BTN_PLUS)!=0) {
+        Config::ConfigFile.channels[idx].min_mV += STEP_TUNING_mV;
+        Config::ConfigFile.channels[idx].max_mV += STEP_TUNING_mV;
+      }
+      if ((currbuttons & BUTTONS_PRESSED::BTN_MINUS)!=0) {
+        Config::ConfigFile.channels[idx].min_mV -= STEP_TUNING_mV;
+        Config::ConfigFile.channels[idx].max_mV -= STEP_TUNING_mV;
+      }
+      if (Config::ConfigFile.channels[idx].min_mV<0)
+        Config::ConfigFile.channels[idx].min_mV = 0;
+      if (Config::ConfigFile.channels[idx].max_mV>5000)
+        Config::ConfigFile.channels[idx].max_mV = 5000;
+      if (Config::ConfigFile.channels[idx].min_mV>Config::ConfigFile.channels[idx].max_mV)
+        Config::ConfigFile.channels[idx].min_mV = Config::ConfigFile.channels[idx].max_mV;
+      if (Config::ConfigFile.channels[idx].max_mV<Config::ConfigFile.channels[idx].min_mV)
+        Config::ConfigFile.channels[idx].max_mV = Config::ConfigFile.channels[idx].min_mV;
+    }
+    break;
+
   }
 
 }
@@ -335,11 +412,11 @@ void DisplayModes() {
       Display.println(buff);
       sprintf(buff, " Inter:%5dus", Config::ConfigFile.interval_us);
       Display.println(buff);
-      sprintf(buff, " Min:%5dus", Config::ConfigFile.min_pulse_us);
+      sprintf(buff, " Min:  %5dus", Config::ConfigFile.min_pulse_us);
       Display.println(buff);
-      sprintf(buff, " Max:%5dus", Config::ConfigFile.max_pulse_us);
+      sprintf(buff, " Max:  %5dus", Config::ConfigFile.max_pulse_us);
       Display.println(buff);
-      sprintf(buff, " #Chan:%d", Config::ConfigFile.NBchannels);
+      sprintf(buff, " #Chan:%3d", Config::ConfigFile.NBchannels);
       Display.println(buff);
       sprintf(buff, " SAVE ALL?");
       Display.println(buff);
@@ -353,11 +430,11 @@ void DisplayModes() {
       switch(currentEditLine) {
         case 0: {
           if ((currbuttons & BUTTONS_PRESSED::BTN_PLUS)!=0) {
-            Config::ConfigFile.frame_length_us += 10;
+            Config::ConfigFile.frame_length_us += STEP_TUNING_us;
             edited = true;
           }
           if ((currbuttons & BUTTONS_PRESSED::BTN_MINUS)!=0) {
-            Config::ConfigFile.frame_length_us -= 10;
+            Config::ConfigFile.frame_length_us -= STEP_TUNING_us;
             edited = true;
           }
           if (Config::ConfigFile.frame_length_us<0)
@@ -368,11 +445,11 @@ void DisplayModes() {
         break;
         case 1: {
           if ((currbuttons & BUTTONS_PRESSED::BTN_PLUS)!=0) {
-            Config::ConfigFile.interval_us += 10;
+            Config::ConfigFile.interval_us += STEP_TUNING_us;
             edited = true;
           }
           if ((currbuttons & BUTTONS_PRESSED::BTN_MINUS)!=0) {
-            Config::ConfigFile.interval_us -= 10;
+            Config::ConfigFile.interval_us -= STEP_TUNING_us;
             edited = true;
           }
           if (Config::ConfigFile.interval_us<0)
@@ -383,11 +460,11 @@ void DisplayModes() {
         break;
        case 2: {
           if ((currbuttons & BUTTONS_PRESSED::BTN_PLUS)!=0) {
-            Config::ConfigFile.min_pulse_us += 10;
+            Config::ConfigFile.min_pulse_us += STEP_TUNING_us;
             edited = true;
           }
           if ((currbuttons & BUTTONS_PRESSED::BTN_MINUS)!=0) {
-            Config::ConfigFile.min_pulse_us -= 10;
+            Config::ConfigFile.min_pulse_us -= STEP_TUNING_us;
             edited = true;
           }
           if (Config::ConfigFile.min_pulse_us<Config::ConfigFile.interval_us)

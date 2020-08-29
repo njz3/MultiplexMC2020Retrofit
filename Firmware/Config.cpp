@@ -88,20 +88,21 @@ void ResetConfig()
       strncpy(ConfigFile.channels[i].name, buf, 9);
     }    
     
-    ConfigFile.channels[i].rate = 1.0f;
+    ConfigFile.channels[i].rate = 2.0f;
     ConfigFile.channels[i].master_channel = 0;
+    
     if (i<4) {
       ConfigFile.channels[i].min_mV = MIN_MANCHES_mV;
-      ConfigFile.channels[i].med_mV = (MIN_MANCHES_mV + MAX_MANCHES_mV)>>1;
       ConfigFile.channels[i].max_mV = MAX_MANCHES_mV;
       ConfigFile.channels[i].min_us = 1000;
       ConfigFile.channels[i].max_us = 2200;
+      ConfigFile.channels[i].trim_us = 0;
     } else {
       ConfigFile.channels[i].min_mV = MIN_AUX_mV;
-      ConfigFile.channels[i].med_mV = (MIN_AUX_mV + MAX_AUX_mV)>>1;
       ConfigFile.channels[i].max_mV = MAX_AUX_mV;
       ConfigFile.channels[i].min_us = 1000;
       ConfigFile.channels[i].max_us = 2200;
+      ConfigFile.channels[i].trim_us = 0;
     }
   }
 }

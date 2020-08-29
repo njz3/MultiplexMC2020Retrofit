@@ -31,6 +31,8 @@ const int MAX_MANCHES_mV = 3200;
 const int MIN_AUX_mV = 0000;
 const int MAX_AUX_mV = 5000;
 
+const int STEP_TUNING_mV = 50;
+const int STEP_TUNING_us = 20;
 
 namespace Config {
 
@@ -71,14 +73,14 @@ typedef struct {
   char name[10];
   // Minimum voltage
   int min_mV;
-  // Trim center
-  int med_mV;
   // Maximum voltage
   int max_mV;
   // Minimum us output
   int min_us;
   // Maximum us output
   int max_us;
+  // Trim offset
+  int trim_us;
   // For dual rate or coupling: scale factor
   float rate;
   // For coupling
