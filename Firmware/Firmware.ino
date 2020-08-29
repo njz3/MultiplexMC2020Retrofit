@@ -45,9 +45,24 @@ void setup() {
   pinMode(A13, INPUT);
   pinMode(A14, INPUT);
   pinMode(A15, INPUT);
+  pinMode(12, INPUT_PULLUP);
 #endif
 
   delay(500);
+  int resetPin = digitalRead(12);
+  if (resetPin==0) {
+    Serial.println("D12 on! Reset");
+    Display.println("D12 on! Reset");
+    Config::ResetConfig();
+    delay(2000);
+  }
+
+  
+  Serial.println("Loading config");
+  Display.println("Loading config");
+  Config::LoadConfigFromEEPROM();
+  delay(1000);
+  
   Serial.println("Starting PPM...");
   Display.println("Starting PPM");
   
@@ -72,13 +87,14 @@ const int MAX_MANCHE_mV = 3200;
 const int MIN_MANCHE_ADC = (int)(MIN_MANCHE_mV*SCALE_ADC_per_mV);
 const int MAX_MANCHE_ADC = (int)(MAX_MANCHE_mV*SCALE_ADC_per_mV);
 
-void loop() {
+
+int adc_vals[16];
+int chan_adc[16];
+int chan_ms[16];
+int nb_adc = 0;
+
+void ReadValues() {
   Serial.println("Reading ");
- 
-  int adc_vals[16];
-  int chan_adc[16];
-  int chan_ms[16];
-  int nb_adc = 0;
   
   adc_vals[nb_adc++] = analogRead(A0);
   adc_vals[nb_adc++] = analogRead(A1);
@@ -106,7 +122,7 @@ void loop() {
   // Special manche (course limitée)
   for(int i=0; i<4; i++) {
     chan_adc[i] = constrain(adc_vals[i],MIN_MANCHE_ADC, MAX_MANCHE_ADC);
-    chan_ms[i] = map(chan_adc[i], MIN_MANCHE_ADC, MAX_MANCHE_ADC, PPMEncoder::MIN, PPMEncoder::MAX);
+    chan_ms[i] = map(chan_adc[i], MIN_MANCHE_ADC, MAX_MANCHE_ADC, PPMEncoder::MIN_us, PPMEncoder::MAX_us);
     // Set PPM value
     ppmEncoder.setChannel(i, chan_ms[i]);
   }
@@ -115,11 +131,17 @@ void loop() {
   // Autre potars
   for(int i=4; i<min(NB_CHANNELS, nb_adc); i++) {
     chan_adc[i] = constrain(adc_vals[i], 0, 1023);
-    chan_ms[i] = map(chan_adc[i], 0, 1023, PPMEncoder::MIN, PPMEncoder::MAX);
+    chan_ms[i] = map(chan_adc[i], 0, 1023, PPMEncoder::MIN_us, PPMEncoder::MAX_us);
     // Set PPM value
     ppmEncoder.setChannel(i, chan_ms[i]);
   }
+}
 
+
+int currentDisplayValuesPage = 0;
+
+void DisplayValues() {
+  
   Serial.print("Values ");
   Serial.print(MIN_MANCHE_mV);
   Serial.print(" ");
@@ -132,14 +154,96 @@ void loop() {
   for(int i=0; i<4; i++) {
     //dtostrf(vals[0], 2, 2, buff);
     int btn = digitalRead(2);
-    if (btn!=0)
-      sprintf(buff, "A%d=%4dus", i, (int)(chan_ms[i]));
-    else
+    if (btn==0)
       sprintf(buff, "A%d=%4dmV", i, (int)(adc_vals[i]*SCALE_mV_per_ADC));
+    else
+      sprintf(buff, "T%d=%4dus", i, (int)(chan_ms[i]));
   
     Serial.println(buff);
     Display.println(buff);
   }
+}
+
+int currentDisplayChannelPage = 0;
+
+void DisplayChannels() {
+  Display.setCursor(0,1);
+  Display.println("Channel:");
+ 
+  char buff[32];
+  for(int i=0; i<4; i++) {
+    
+    sprintf(buff, "T%d=%4dus", i, (int)(chan_ms[i]));
   
-  delay(10);
+    Serial.println(buff);
+    Display.println(buff);
+  }
+}
+
+int currentDisplayModePage = 0;
+
+void DisplayModes() {
+  Display.setCursor(0,1);
+  Display.println("Modes:");
+ /*
+  char buff[32];
+  for(int i=0; i<4; i++) {
+    
+    sprintf(buff, "T%d=%4dus", i, (int)(chan_ms[i]));
+  
+    Serial.println(buff);
+    Display.println(buff);
+  }
+  */
+}
+
+int currentDisplayOptionsPage = 0;
+
+void DisplayOptions() {
+  Display.setCursor(0,1);
+  Display.println("Options:");
+ /*
+  char buff[32];
+  for(int i=0; i<4; i++) {
+    
+    sprintf(buff, "T%d=%4dus", i, (int)(chan_ms[i]));
+  
+    Serial.println(buff);
+    Display.println(buff);
+  }
+  */
+}
+
+enum STATE_MACHINE : uint8_t
+{
+  DISPLAY_VALUES = 0,
+  DISPLAY_CHANNELS,
+  DISPLAY_MODES,
+  DISPLAY_OPTIONS,
+  MAX_STATES,
+};
+
+uint8_t state = STATE_MACHINE::DISPLAY_VALUES;
+
+void loop() {
+  
+  ReadValues();
+  
+  switch(state) {
+    case DISPLAY_VALUES:
+      DisplayValues();
+      break;
+    case DISPLAY_CHANNELS:
+      DisplayChannels();
+      break;
+    case DISPLAY_MODES:
+      DisplayModes();
+      break;
+    case DISPLAY_OPTIONS:
+      DisplayOptions();
+      break;
+  }
+  
+  
+  delay(50);
 }

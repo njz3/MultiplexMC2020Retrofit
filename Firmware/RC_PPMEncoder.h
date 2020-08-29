@@ -11,8 +11,6 @@
 
 #define PPM_DEFAULT_CHANNELS (8)
 
-#define PPM_INTERVAL_LENGTH_uS (300)
-#define PPM_FRAME_LENGTH_uS (20000)
 
 enum PPM_STATE : uint8_t
 {
@@ -23,10 +21,13 @@ enum PPM_STATE : uint8_t
 
 class PPMEncoder {
   public:
-    static const uint16_t MAX_CHANNEL = 10;
-    static const uint16_t MIN = 1000;
-    static const uint16_t MED = 1600;
-    static const uint16_t MAX = 2200;
+    static const uint16_t MAX_CHANNEL = 16;
+    
+    static uint16_t PPM_INTERVAL_LENGTH_us;
+    static uint16_t PPM_FRAME_LENGTH_us;
+    static uint16_t MIN_us;
+    static uint16_t MED_us;
+    static uint16_t MAX_us;
 
     void setChannel(uint8_t channel, uint16_t value);
     void setChannelPercent(uint8_t channel, uint8_t percent);
@@ -39,7 +40,7 @@ class PPMEncoder {
 
   private:
     int16_t channels[MAX_CHANNEL+1];
-    uint16_t elapsedUs;
+    uint16_t elapsed_us;
 
     uint8_t numChannels;
     uint8_t currentChannel;
