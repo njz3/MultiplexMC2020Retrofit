@@ -12,23 +12,29 @@
 #error "Unsupported board. Only Mega2560 or Nano 328P"
 #endif
 
+//#define TEST_MEM
 
+// Use D10 for all
 #define OUTPUT_PIN (10)
 
 #if defined(MC2020_MEGA)
 
-#define MAX_CHANNELS (16)
+#define MAX_ADC (16)
+#define MAX_CHANNELS (12)
 #define NB_CHANNELS (7)
+#define ADC_VBAT (15)
 
 #elif defined(MC2020_NANO)
 
-#define MAX_CHANNELS (8)
-#define NB_CHANNELS (6)
+#define MAX_ADC (6)
+#define MAX_CHANNELS (5)
+#define NB_CHANNELS (4)
+#define ADC_VBAT (5)
 
 #else
 
 #define MAX_CHANNELS (8)
-#define NB_CHANNELS (6)
+#define NB_CHANNELS (8)
 
 #endif
 
@@ -79,22 +85,22 @@ typedef struct {
   byte channel;
   // Channel options: inverted, coupling, dual rate
   byte options;
+  // For coupling
+  byte master_channel;
   // Channel name (pleas restrict to 8 characters only)
-  char name[10];
+  char name[8];
   // Minimum voltage
-  int min_mV;
+  int16_t min_mV;
   // Maximum voltage
-  int max_mV;
+  int16_t max_mV;
   // Minimum us output
-  int min_us;
+  int16_t min_us;
   // Maximum us output
-  int max_us;
+  int16_t max_us;
   // Trim offset
-  int trim_us;
+  int16_t trim_us;
   // For dual rate or coupling: scale factor
   float rate;
-  // For coupling
-  int master_channel;
 } CHANNEL_CONFIG;
 
 // Non-volatile (eeprom) config, bytes field only
@@ -103,24 +109,20 @@ typedef struct {
   byte CRC8;
 
   // GENERAL CONFIG
-  // enum baudrate
-  byte serialSpeed;
-  // Controller options1 (screen)
-  byte options1;
-  // Controlle options2 (display)
-  byte options2;
+  // Controller options (screen)
+  byte options;
 
   // PPM PULSE MODULE
   // Frame duration (20ms, max 32)
-  int frame_length_us;
+  int16_t frame_length_us;
   // Interval duration (0.3ms)
-  int interval_us;
+  int16_t interval_us;
   // Minimum pulse duration
-  int min_pulse_us;
+  int16_t min_pulse_us;
   // Maximum pulse duration
-  int max_pulse_us;
+  int16_t max_pulse_us;
   // Number of channels (max is 16 for now)
-  byte NBchannels;
+  int16_t NBchannels;
   
   // CHANNELS
   // Each individual channel configuration
@@ -128,7 +130,7 @@ typedef struct {
   
 } EEPROM_CONFIG;
 
-extern char* ChannelNames[];
+extern const char* ChannelNames[];
 extern EEPROM_CONFIG ConfigFile;
 
 int SaveConfigToEEPROM();
@@ -136,3 +138,5 @@ int LoadConfigFromEEPROM();
 void ResetConfig();
 
 }
+
+int freeMemory();

@@ -18,7 +18,7 @@ class CDisplay {
 
   public:   
     void begin();
-    void loop();
+    //void loop();
 
     void cleanup(void);
 
@@ -31,9 +31,11 @@ class CDisplay {
     void draw2x2String(int col, int row, char *str);
 
     void print(const char *str);
-    void print(const String& str);
+    void print(const int val);
+    //void print(const String& str);
     void println(const char *str);
-    void println(const String& str);
+    void println(const int val);
+    //void println(const String& str);
     void setCursor(int col, int row);
     void setSmallFont();
     void setNormalFont();
@@ -46,9 +48,9 @@ class CDisplay {
     int getCol() { return col; }
     int getFontRawSize() { return fontRowSize; }
     void setHeader(const char* str) { strncpy(header, str, sizeof(header)-1); header[16]=0; }
-    void setHeader(const String& str);
+    //void setHeader(const String& str);
     void setFooter(const char* str) { strncpy(footer, str, sizeof(footer)-1); footer[16]=0; }
-    void setFooter(const String& str);
+    //void setFooter(const String& str);
     
 };
 

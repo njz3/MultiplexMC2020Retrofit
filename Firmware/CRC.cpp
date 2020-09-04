@@ -4,6 +4,8 @@
 #include "CRC.h"
 
 namespace CRC {
+  
+#if defined(MEGA2560)
 
 // https://stackoverflow.com/questions/51752284/how-to-calculate-crc8-in-c
 static unsigned char const crc8x_table[] = {
@@ -39,5 +41,32 @@ unsigned crc8x_fast(unsigned crc, void const *mem, int len)
         crc = crc8x_table[crc ^ *data++];
     return crc;
 }
+
+unsigned crc8x(unsigned crc, void const *mem, int len)
+{
+  return crc8x_fast(crc, mem, len);
+}
+
+#else
+
+unsigned crc8x_simple(unsigned crc, void const *mem, size_t len) {
+    unsigned char const *data = (unsigned char const *)mem;
+    if (data == NULL)
+        return 0xff;
+    while (len--) {
+        crc ^= *data++;
+        for (unsigned k = 0; k < 8; k++)
+            crc = crc & 0x80 ? (crc << 1) ^ 0x31 : crc << 1;
+    }
+    crc &= 0xff;
+    return crc;
+}
+
+unsigned crc8x(unsigned crc, void const *mem, int len)
+{
+  return crc8x_simple(crc, mem, len);
+}
+
+#endif
 
 }

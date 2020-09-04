@@ -9,7 +9,7 @@ namespace Config {
 
 EEPROM_CONFIG ConfigFile;
 
-char* ChannelNames[] = {
+const char* ChannelNames[] = {
   "Prof. ", 
   "Direc.",
   "Gaz   ",
@@ -28,7 +28,7 @@ int SaveConfigToEEPROM()
   // Pointer to record
   byte* pBlock = (byte*)&ConfigFile;  
   // Compute CRC8 to detect wrong eeprom data
-  byte crc8 = CRC::crc8x_fast(0, pBlock+1, sizeof(EEPROM_CONFIG)-1);
+  byte crc8 = CRC::crc8x(0, pBlock+1, sizeof(EEPROM_CONFIG)-1);
   // Update CRC in record
   ConfigFile.CRC8 = crc8;
   // Write record to EEPROM
@@ -51,7 +51,7 @@ int LoadConfigFromEEPROM()
     pBlock[i] = EEPROM.read(i);
   }
   // Compute CRC8 to detect wrong eeprom data
-  byte crc8 = CRC::crc8x_fast(0, pBlock+1, sizeof(EEPROM_CONFIG)-1);
+  byte crc8 = CRC::crc8x(0, pBlock+1, sizeof(EEPROM_CONFIG)-1);
   // Check CRC match?
   if (crc8 != newCfg.CRC8) {
     // Wrong CRC
@@ -65,16 +65,14 @@ int LoadConfigFromEEPROM()
 void ResetConfig()
 {
   // CONTROLLER
-  ConfigFile.serialSpeed = PCSERIAL_BAUDRATE;
-  ConfigFile.options1 = 0;
-  ConfigFile.options2 = 0;
+  ConfigFile.options = 0;
 
   // PPM PULSE MODULE
   ConfigFile.frame_length_us = 20000;
   ConfigFile.interval_us = 300;
   ConfigFile.min_pulse_us = 800;
   ConfigFile.max_pulse_us = 2400;
-  ConfigFile.NBchannels = 7;
+  ConfigFile.NBchannels = NB_CHANNELS;
 
   for(int i=0; i<MAX_CHANNELS; i++) {
     ConfigFile.channels[i].channel = i+1;
@@ -89,7 +87,7 @@ void ResetConfig()
     }    
     
     ConfigFile.channels[i].rate = 2.0f;
-    ConfigFile.channels[i].master_channel = 0;
+    ConfigFile.channels[i].master_channel = i;
     
     if (i<4) {
       ConfigFile.channels[i].min_mV = MIN_MANCHES_mV;
@@ -107,4 +105,22 @@ void ResetConfig()
   }
 }
 
+}
+
+#ifdef __arm__
+// should use uinstd.h to define sbrk but Due causes a conflict
+extern "C" char* sbrk(int incr);
+#else  // __ARM__
+extern char *__brkval;
+#endif  // __arm__
+ 
+int freeMemory() {
+  char top;
+#ifdef __arm__
+  return &top - reinterpret_cast<char*>(sbrk(0));
+#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
+  return &top - __brkval;
+#else  // __arm__
+  return __brkval ? &top - __brkval : &top - __malloc_heap_start;
+#endif  // __arm__
 }

@@ -34,7 +34,7 @@ Use a SSD1327 OLED 128x128 OLED display in place of the liquid crystal display.
 | A6    | Trim1        | An.In 0..5V      |          -           |
 | A7    | Trim2        | An.In 0..5V      |          -           |
 | +5V   | 5V Régul.    | Sortie 5V        | commun des pull-up 4.7kOhm   |
-| RST   | Rest µC      | Entrée GND       |          -           |
+| RST   | Reset µC     | Entrée GND       |          -           |
 | GND   | Masse        | GND              | commun GND           |
 | VIN   | Alim régul.  | 7-12V            | (+) batteries        |
 
@@ -53,10 +53,10 @@ Use a SSD1327 OLED 128x128 OLED display in place of the liquid crystal display.
 | D6    | Btn Option 1 | Entrée bouton    | GND à ramener via bouton |
 | D5    | Btn Page     | Entrée bouton    | GND à ramener via bouton |
 | D4    | Btn Next     | Entrée bouton    | GND à ramener via bouton |
-| D3    | Btn Next     | Entrée bouton    | GND à ramener via bouton |
-| D2    | Btn Next     | Entrée bouton    | GND à ramener via bouton |
+| D3    | Btn Moins    | Entrée bouton    | GND à ramener via bouton |
+| D2    | Btn Plus     | Entrée bouton    | GND à ramener via bouton |
 | GND   | Masse        | GND              | commun GND           |
-| RST   | Rest µC      | Entrée GND       |           -          |
+| RST   | Reset µC     | Entrée GND       |           -          |
 | RX0   |              |                  |           -          |
 | TX1   |              |                  |           -          |
 

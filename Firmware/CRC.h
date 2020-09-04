@@ -6,6 +6,6 @@
 
 namespace CRC {
   
-unsigned crc8x_fast(unsigned crc, void const *mem, int len);
+unsigned crc8x(unsigned crc, void const *mem, int len);
 
 }
