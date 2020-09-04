@@ -265,16 +265,6 @@ void MakeDisplayChannelPage()
 }
 
 void DisplayChannels(PRINT_MODES print_mode) {
-  /*
-  if ((currbuttons & BUTTONS_PRESSED::BTN_NEXT)!=0) {
-    currentDisplayChannelPage += 1;
-    if (currentDisplayChannelPage>=Config::ConfigFile.NBchannels)      currentDisplayChannelPage = 0;
-    char buff[20];
-    sprintf(buff, mFooterChan, Config::ConfigFile.channels[idx].name);
-    Display.setFooter(buff);
-    Display.refreshFooter();
-  }
-  */
   if (IS_PUSHED(BUTTONS_ID::BTN_NEXT)) {
     currentEditLine += 1;
     print_mode=PRINT_MODES::PRINT;
@@ -304,13 +294,6 @@ void DisplayChannels(PRINT_MODES print_mode) {
     }
     break;
     case 1: {
-      /*
-      if (IS_PUSHED(BUTTONS_ID::BTN_PLUS)) {
-        currentDisplayChannelPage += 1;
-        if (currentDisplayChannelPage>Config::ConfigFile.NBchannels-1)
-          currentDisplayChannelPage = 0;
-        edited = true;
-      }*/
       if (IS_PUSHED(BUTTONS_ID::BTN_PLUS)) {
         currentDisplayValuesMode += 1;
         if (currentDisplayValuesMode>=3)
@@ -399,8 +382,8 @@ void MakeDisplayChannelsOptionsPage()
   Body.Lines[0] = (display_line*)new display_line_str(0, " Name: ", "%s  ", Config::ConfigFile.channels[currentDisplayChannelPage].name);
   Body.Lines[1] = (display_line*)new display_line(1, " Signe ");
   Body.Lines[2] = (display_line*)new display_line(2, " Coup. ");
-  Body.Lines[3] = (display_line*)new display_line(3, " Fine  ");
-  Body.Lines[4] = (display_line*)new display_line(4, " Power ");
+  Body.Lines[3] = (display_line*)new display_line(3, " Dual  ");
+  Body.Lines[4] = (display_line*)new display_line(4, " Ramp  ");
   int master = Config::ConfigFile.channels[currentDisplayChannelPage].master_channel;
   Body.Lines[5] = (display_line*)new display_line_str(5, " Mastr ", "%s  ", Config::ConfigFile.channels[master].name);
   Body.Lines[6] = (display_line*)new display_line(6, " Rate  ");
@@ -416,90 +399,79 @@ void DisplayChannelsOptions(PRINT_MODES print_mode) {
     currentEditLine = 0;
     print_mode=PRINT_MODES::PRINT;
   }
-  
+
+  int idx = currentDisplayChannelPage;
   if (print_mode==PRINT_MODES::PRINT) {
     MakeDisplayChannelsOptionsPage();
     Body.Print();
   } else {
     Body.Refresh();
+  
+    Body.Lines[1]->refresh();
+    if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_INVERTED)!=0)
+      Display.print("Invert");
+    else
+      Display.print("Normal");
+      
+    Body.Lines[2]->refresh();
+    if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_COUPLING)!=0)
+      Display.print("Yes");
+    else
+      Display.print("No ");
+          
+    Body.Lines[3]->refresh();
+    if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_DUALRATE)!=0)
+      Display.println("Yes");
+    else
+      Display.println("No ");
+  
+    Body.Lines[4]->refresh();
+    if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_POWERLAW)!=0)
+      Display.println("Power ");
+    else
+      Display.println("Linear");
+  
+    Body.Lines[6]->refresh();
+    char buff[20];
+    sprintf(buff, "%.4f   ", Config::ConfigFile.channels[idx].rate);
+    Display.print(buff);
   }
-
-  int idx = currentDisplayChannelPage;
-
-  Body.Lines[1]->refresh();
-  if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_INVERTED)!=0)
-    Display.print("Invert");
-  else
-    Display.print("Normal");
-    
-  Body.Lines[2]->refresh();
-  if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_COUPLING)!=0)
-    Display.print("Yes");
-  else
-    Display.print("No ");
-        
-  Body.Lines[3]->refresh();
-  if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_DUALRATE)!=0)
-    Display.println("Dual");
-  else
-    Display.println("No  ");
-
-  Body.Lines[4]->refresh();
-  if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_POWERLAW)!=0)
-    Display.println("Power ");
-  else
-    Display.println("Linear");
-
-  Body.Lines[6]->refresh();
-  Display.print((int)(Config::ConfigFile.channels[idx].rate*1000.0));
-
   
   Body.SetCursor(0, currentEditLine);
   Body.Print(">");
-/*
+
   bool edited = false;
   switch(currentEditLine) {
     case 0: {
-      edited = ChangeBitUInt8(&Config::ConfigFile.channels[idx].options, CONFIG_CHANNEL_OPT_INVERTED);
-      
+      edited = ChangeInt16(&currentDisplayChannelPage, 1, 0, Config::ConfigFile.NBchannels-1);
     }
     break;
     case 1: {
-      edited = ChangeBitUInt8(&Config::ConfigFile.channels[idx].options, CONFIG_CHANNEL_OPT_COUPLING);
-
+      edited = ChangeBitUInt8(&Config::ConfigFile.channels[idx].options, CONFIG_CHANNEL_OPT_INVERTED);
     }
     break;
     case 2: {
-      edited = ChangeBitUInt8(&Config::ConfigFile.channels[idx].options, CONFIG_CHANNEL_OPT_DUALRATE);
-      
+      edited = ChangeBitUInt8(&Config::ConfigFile.channels[idx].options, CONFIG_CHANNEL_OPT_COUPLING);
     }
     break;
     case 3: {
-      edited = ChangeBitUInt8(&Config::ConfigFile.channels[idx].options, CONFIG_CHANNEL_OPT_POWERLAW);
-      
+      edited = ChangeBitUInt8(&Config::ConfigFile.channels[idx].options, CONFIG_CHANNEL_OPT_DUALRATE);
     }
     break;
     case 4: {
-      if (IS_PUSHED(BUTTONS_ID::BTN_PLUS)) {
-        Config::ConfigFile.channels[idx].master_channel += 1;
-        edited = true;
-      }
-      if (IS_PUSHED(BUTTONS_ID::BTN_MINUS)) {
-        Config::ConfigFile.channels[idx].master_channel -= 1;
-        edited = true;
-      }
-      if (Config::ConfigFile.channels[idx].master_channel<0)
-        Config::ConfigFile.channels[idx].master_channel = 0;
-      if (Config::ConfigFile.channels[idx].master_channel>=Config::ConfigFile.NBchannels) 
-        Config::ConfigFile.channels[idx].master_channel = Config::ConfigFile.NBchannels-1;
+      edited = ChangeBitUInt8(&Config::ConfigFile.channels[idx].options, CONFIG_CHANNEL_OPT_POWERLAW);
     }
     break;
     case 5: {
-      if (IS_PUSHED(BUTTONS_ID::BTN_PLUS)) {
+      edited = ChangeInt8(&Config::ConfigFile.channels[idx].master_channel, 1, 0, Config::ConfigFile.NBchannels-1);
+    }
+    break;
+    case 6: {
+      if (IS_PRESSED(BUTTONS_ID::BTN_PLUS)) {
         Config::ConfigFile.channels[idx].rate *= 1.02f;
         edited = true;
       }
-      if (IS_PUSHED(BUTTONS_ID::BTN_MINUS)) {
+      if (IS_PRESSED(BUTTONS_ID::BTN_MINUS)) {
         Config::ConfigFile.channels[idx].rate *= (1.0f/(1.02f));
         edited = true;
       }
@@ -512,9 +484,9 @@ void DisplayChannelsOptions(PRINT_MODES print_mode) {
   }
       
   if (edited) {
-    MakeDisplayChannelPage();
+    MakeDisplayChannelsOptionsPage();
     Body.Print();
-  }*/
+  }
 }
 
 void MakePPMPage()
