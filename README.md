@@ -10,9 +10,13 @@ Use a SSD1327 OLED 128x128 OLED display in place of the liquid crystal display.
 
 # Wiring pour NANO sur émetteur simple
 
-![NANO pinout](Arduino-Nano-pinout.jpg)
+![NANO pinout](doc/Arduino-Nano-pinout.jpg)
 
-![OLED pinout](Diagram-OLED.jpg)
+<div style="page-break-after: always"></div>
+
+![OLED pinout](doc/Diagram-OLED.jpg)
+
+<div style="page-break-after: always"></div>
 
 *Prévoir une résistance de pull-up de 4.7kOhm à 5V sur SDA et SCL !*
 
