@@ -266,11 +266,15 @@ void MakeDisplayChannelPage()
 
 void DisplayChannels(PRINT_MODES print_mode) {
   if (IS_PUSHED(BUTTONS_ID::BTN_NEXT)) {
+    Body.SetCursor(0, currentEditLine);
+    Body.Print(" ");
     currentEditLine += 1;
-    print_mode=PRINT_MODES::PRINT;
   }
   if (currentEditLine>=7) {
     currentEditLine = 0;
+  }
+  if (currentDisplayChannelPage>=Config::ConfigFile.NBchannels) {
+    currentDisplayChannelPage = Config::ConfigFile.NBchannels-1;
     print_mode=PRINT_MODES::PRINT;
   }
   
@@ -392,14 +396,18 @@ void MakeDisplayChannelsOptionsPage()
 
 void DisplayChannelsOptions(PRINT_MODES print_mode) {
   if (IS_PUSHED(BUTTONS_ID::BTN_NEXT)) {
+    Body.SetCursor(0, currentEditLine);
+    Body.Print(" ");
     currentEditLine += 1;
-    print_mode=PRINT_MODES::PRINT;
   }
   if (currentEditLine>=7) {
     currentEditLine = 0;
+  }
+  if (currentDisplayChannelPage>=Config::ConfigFile.NBchannels) {
+    currentDisplayChannelPage = Config::ConfigFile.NBchannels-1;
     print_mode=PRINT_MODES::PRINT;
   }
-
+  
   int idx = currentDisplayChannelPage;
   if (print_mode==PRINT_MODES::PRINT) {
     MakeDisplayChannelsOptionsPage();
@@ -432,9 +440,7 @@ void DisplayChannelsOptions(PRINT_MODES print_mode) {
       Display.println("Linear");
   
     Body.Lines[6]->refresh();
-    char buff[20];
-    sprintf(buff, "%.4f   ", Config::ConfigFile.channels[idx].rate);
-    Display.print(buff);
+    Display.print((int)(Config::ConfigFile.channels[idx].rate*1000.0));
   }
   
   Body.SetCursor(0, currentEditLine);
@@ -506,12 +512,12 @@ void MakePPMPage()
 void DisplayPPM(PRINT_MODES print_mode) {
 
   if (IS_PUSHED(BUTTONS_ID::BTN_NEXT)) {
+    Body.SetCursor(0, currentEditLine);
+    Body.Print(" ");
     currentEditLine += 1;
-    print_mode=PRINT_MODES::PRINT;
   }
   if (currentEditLine>=6) {
     currentEditLine = 0;
-    print_mode=PRINT_MODES::PRINT;
   }
 
   if (print_mode==PRINT_MODES::PRINT) {
