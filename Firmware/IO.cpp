@@ -115,6 +115,7 @@ void ProcessValues() {
   bool coupling  = IS_PRESSED(BTN_COUPLING);
   
   for(int i=0; i<Config::ConfigFile.NBchannels; i++) {
+    int range_mv = Config::ConfigFile.channels[i].max_mV - Config::ConfigFile.channels[i].min_mV;
     int fullmax_mv = Config::ConfigFile.channels[i].max_mV + Config::ConfigFile.channels[i].trim_mV;
     int fullmin_mv = Config::ConfigFile.channels[i].min_mV + Config::ConfigFile.channels[i].trim_mV;
     int full_mv = max(abs(fullmax_mv), abs(fullmin_mv));
@@ -176,7 +177,13 @@ void ProcessValues() {
       float scaled = pow(normalized, Config::ConfigFile.channels[idx].rate)* 2500.0f;
     }
     */
-    
+    if (i==0) {
+      Serial.println("Prof.");
+      Serial.println(fullmax_mv);
+      Serial.println(fullmin_mv);
+      Serial.println(full_mv);
+    }
+
     // Set PPM value
     ppmEncoder.setChannel(i, chan_ms[i]);
   }

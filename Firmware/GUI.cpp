@@ -161,7 +161,7 @@ struct ScreenBody
       if (Lines[row]!=NULL)
         Lines[row]->print();
       else
-        Display.clearLine((row<<1+1));
+        Display.clearLine((row<<1)+1);
     }
   };
   
@@ -202,8 +202,6 @@ void MakeDisplayCurrentValuesPage()
         Body.Lines[i] = (display_line*)new display_line_int(i, Config::ConfigFile.channels[idx].name, mStrValue4us, &chan_ms[idx]);
         break;
       }
-    } else {
-      Body.Lines[i] = (display_line*)new display_line(i, NULL);
     }
   }
 }
@@ -215,18 +213,22 @@ void DisplayCurrentValues(PRINT_MODES print_mode) {
     int nb_pages = (Config::ConfigFile.NBchannels-1)/7;
     if (currentDisplayValuesPage>nb_pages)
       currentDisplayValuesPage = 0;
+    MakeDisplayCurrentValuesPage();
+    print_mode=PRINT_MODES::PRINT;
   }
   if (IS_PUSHED(BUTTONS_ID::BTN_PLUS)) {
     currentDisplayValuesMode += 1;
     if (currentDisplayValuesMode>=4)
       currentDisplayValuesMode = 3;
     MakeDisplayCurrentValuesPage();
+    print_mode=PRINT_MODES::PRINT;
   }
   if (IS_PUSHED(BUTTONS_ID::BTN_MINUS)) {
     currentDisplayValuesMode -= 1;
     if (currentDisplayValuesMode<0)
       currentDisplayValuesMode = 0;
     MakeDisplayCurrentValuesPage();
+    print_mode=PRINT_MODES::PRINT;
   }
   
   if (print_mode==PRINT_MODES::PRINT) {
@@ -335,8 +337,8 @@ void DisplayChannels(PRINT_MODES print_mode) {
     case 4: {
       ChangeInt16(&Config::ConfigFile.channels[idx].trim_mV, 
         STEP_TUNING_mV,
-        -(Config::ConfigFile.channels[idx].min_mV+Config::ConfigFile.channels[idx].max_mV)>>2,
-        (Config::ConfigFile.channels[idx].min_mV+Config::ConfigFile.channels[idx].max_mV)>>2);
+        -Config::ConfigFile.channels[idx].max_mV,
+        -Config::ConfigFile.channels[idx].min_mV);
     }
     break;
     case 5: {
@@ -356,8 +358,8 @@ void DisplayChannels(PRINT_MODES print_mode) {
     case 7: {
       ChangeInt16(&Config::ConfigFile.channels[idx].trim_us, 
         STEP_TUNING_us,
-        -(Config::ConfigFile.channels[idx].min_us+Config::ConfigFile.channels[idx].max_us)>>2,
-        (Config::ConfigFile.channels[idx].min_us+Config::ConfigFile.channels[idx].max_us)>>2);
+        -((Config::ConfigFile.channels[idx].min_us+Config::ConfigFile.channels[idx].max_us)>>1),
+        (Config::ConfigFile.channels[idx].min_us+Config::ConfigFile.channels[idx].max_us)>>1);
     }
     break;
     /*

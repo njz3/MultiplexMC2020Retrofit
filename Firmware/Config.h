@@ -21,7 +21,7 @@
 
 #define MAX_ADC (16)
 #define MAX_CHANNELS (12)
-#define NB_CHANNELS (7)
+#define NB_CHANNELS (6)
 #define ADC_VBAT (15)
 
 #elif defined(MC2020_NANO)

@@ -150,7 +150,6 @@ void CDisplay::draw_ascii_row(uint8_t r, int start)
 
 void CDisplay::print(const char *str)
 {
-  Serial.println(str);
   #ifndef TEST_MEM
   u8x8.print(str);
   #endif

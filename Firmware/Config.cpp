@@ -82,7 +82,7 @@ void ResetConfig()
       strncpy(ConfigFile.channels[i].name, ChannelNames[i], 9);
     } else {
       char buf[20];
-      sprintf(buf, "C%d", i+1);
+      sprintf(buf, "C%2d   ", i+1);
       strncpy(ConfigFile.channels[i].name, buf, 9);
     }    
     
