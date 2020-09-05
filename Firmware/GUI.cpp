@@ -190,12 +190,15 @@ void MakeDisplayCurrentValuesPage()
       switch(currentDisplayValuesMode) {
         case 0:
         default:
-        Body.Lines[i] = (display_line*)new display_line_int(i, Config::ConfigFile.channels[idx].name, "%3d%%  " /*mStrValue3Pct*/, &chan_pct[idx]);
+        Body.Lines[i] = (display_line*)new display_line_int(i, Config::ConfigFile.channels[idx].name, mStrValue3Pct, &chan_pct[idx]);
         break;
         case 1:
         Body.Lines[i] = (display_line*)new display_line_int(i, Config::ConfigFile.channels[idx].name, mStrValue4mV, &adc_mv[idx]);
         break;
         case 2:
+        Body.Lines[i] = (display_line*)new display_line_int(i, Config::ConfigFile.channels[idx].name, mStrValue4mV, &chan_mv[idx]);
+        break;
+        case 3:
         Body.Lines[i] = (display_line*)new display_line_int(i, Config::ConfigFile.channels[idx].name, mStrValue4us, &chan_ms[idx]);
         break;
       }
@@ -215,8 +218,8 @@ void DisplayCurrentValues(PRINT_MODES print_mode) {
   }
   if (IS_PUSHED(BUTTONS_ID::BTN_PLUS)) {
     currentDisplayValuesMode += 1;
-    if (currentDisplayValuesMode>=3)
-      currentDisplayValuesMode = 0;
+    if (currentDisplayValuesMode>=4)
+      currentDisplayValuesMode = 3;
     MakeDisplayCurrentValuesPage();
   }
   if (IS_PUSHED(BUTTONS_ID::BTN_MINUS)) {
@@ -248,20 +251,24 @@ void MakeDisplayChannelPage()
   switch(currentDisplayValuesMode) {
     case 0:
     default:
-    Body.Lines[1] = (display_line*)new display_line_int(1, " A=", mStrValue3Pct, &chan_pct[currentDisplayChannelPage]);
+    Body.Lines[1] = (display_line*)new display_line_int(1, " P=", mStrValue3Pct, &chan_pct[currentDisplayChannelPage]);
     break;
     case 1:
-    Body.Lines[1] = (display_line*)new display_line_int(1, " C=", mStrValue4mV, &adc_mv[currentDisplayChannelPage]);
+    Body.Lines[1] = (display_line*)new display_line_int(1, " A=", mStrValue4mV, &adc_mv[currentDisplayChannelPage]);
     break;
     case 2:
+    Body.Lines[1] = (display_line*)new display_line_int(1, " C=", mStrValue4mV, &chan_mv[currentDisplayChannelPage]);
+    break;
+    case 3:
     Body.Lines[1] = (display_line*)new display_line_int(1, " T=", mStrValue4us, &chan_ms[currentDisplayChannelPage]);
     break;
   }
-  Body.Lines[2] = (display_line*)new display_line_int(2, " Min.A=", "%4dmV  ", &Config::ConfigFile.channels[currentDisplayChannelPage].min_mV);
-  Body.Lines[3] = (display_line*)new display_line_int(3, " Max.A=", "%4dmV  ", &Config::ConfigFile.channels[currentDisplayChannelPage].max_mV);
-  Body.Lines[4] = (display_line*)new display_line_int(4, " Min.T=", "%4dus  ", &Config::ConfigFile.channels[currentDisplayChannelPage].min_us);
-  Body.Lines[5] = (display_line*)new display_line_int(5, " Max.T=", "%4dus  ", &Config::ConfigFile.channels[currentDisplayChannelPage].max_us);
-  Body.Lines[6] = (display_line*)new display_line_int(6, " Trim =", "%4dus  ", &Config::ConfigFile.channels[currentDisplayChannelPage].trim_us);
+  Body.Lines[2] = (display_line*)new display_line_int(2, " Min.A=", mStrValue4mV, &Config::ConfigFile.channels[currentDisplayChannelPage].min_mV);
+  Body.Lines[3] = (display_line*)new display_line_int(3, " Max.A=", mStrValue4mV, &Config::ConfigFile.channels[currentDisplayChannelPage].max_mV);
+  Body.Lines[4] = (display_line*)new display_line_int(4, " TrimA=", mStrValue4mV, &Config::ConfigFile.channels[currentDisplayChannelPage].trim_mV);
+  Body.Lines[5] = (display_line*)new display_line_int(5, " Min.T=", mStrValue4us, &Config::ConfigFile.channels[currentDisplayChannelPage].min_us);
+  Body.Lines[6] = (display_line*)new display_line_int(6, " Max.T=", mStrValue4us, &Config::ConfigFile.channels[currentDisplayChannelPage].max_us);
+  //Body.Lines[6] = (display_line*)new display_line_int(6, " TrimT=", mStrValue4us, &Config::ConfigFile.channels[currentDisplayChannelPage].trim_us);
 }
 
 void DisplayChannels(PRINT_MODES print_mode) {
@@ -300,8 +307,8 @@ void DisplayChannels(PRINT_MODES print_mode) {
     case 1: {
       if (IS_PUSHED(BUTTONS_ID::BTN_PLUS)) {
         currentDisplayValuesMode += 1;
-        if (currentDisplayValuesMode>=3)
-          currentDisplayValuesMode = 0;
+        if (currentDisplayValuesMode>=4)
+          currentDisplayValuesMode = 3;
         edited = true;
       }if (IS_PUSHED(BUTTONS_ID::BTN_MINUS)) {
         currentDisplayValuesMode -= 1;
@@ -326,20 +333,27 @@ void DisplayChannels(PRINT_MODES print_mode) {
     }
     break;
     case 4: {
+      ChangeInt16(&Config::ConfigFile.channels[idx].trim_mV, 
+        STEP_TUNING_mV,
+        -(Config::ConfigFile.channels[idx].min_mV+Config::ConfigFile.channels[idx].max_mV)>>2,
+        (Config::ConfigFile.channels[idx].min_mV+Config::ConfigFile.channels[idx].max_mV)>>2);
+    }
+    break;
+    case 5: {
       ChangeInt16(&Config::ConfigFile.channels[idx].min_us, 
         STEP_TUNING_us,
         0,
         Config::ConfigFile.channels[idx].max_us);
     }
     break;
-    case 5: {
+    case 6: {
       ChangeInt16(&Config::ConfigFile.channels[idx].max_us, 
         STEP_TUNING_us,
         Config::ConfigFile.channels[idx].min_us,
         5000);
     }
     break;
-    case 6: {
+    case 7: {
       ChangeInt16(&Config::ConfigFile.channels[idx].trim_us, 
         STEP_TUNING_us,
         -(Config::ConfigFile.channels[idx].min_us+Config::ConfigFile.channels[idx].max_us)>>2,
@@ -501,11 +515,11 @@ void MakePPMPage()
   Display.refreshFooter();
 
   Body.Delete();
-  Body.Lines[0] = (display_line*)new display_line_int(0, " #Chan=", "%5d", &Config::ConfigFile.NBchannels);
-  Body.Lines[1] = (display_line*)new display_line_int(1, " Frame=", "%5dus ", &Config::ConfigFile.frame_length_us);
-  Body.Lines[2] = (display_line*)new display_line_int(2, " Inter=", "%5dus ", &Config::ConfigFile.interval_us);
-  Body.Lines[3] = (display_line*)new display_line_int(3, " Min.T=", "%5dus ", &Config::ConfigFile.min_pulse_us);
-  Body.Lines[4] = (display_line*)new display_line_int(4, " Max.T=", "%5dus ", &Config::ConfigFile.max_pulse_us);
+  Body.Lines[0] = (display_line*)new display_line_int(0, " #Chan=", mStrValue2d , &Config::ConfigFile.NBchannels);
+  Body.Lines[1] = (display_line*)new display_line_int(1, " Frame=", mStrValue5us, &Config::ConfigFile.frame_length_us);
+  Body.Lines[2] = (display_line*)new display_line_int(2, " Inter=", mStrValue5us, &Config::ConfigFile.interval_us);
+  Body.Lines[3] = (display_line*)new display_line_int(3, " Min.T=", mStrValue5us, &Config::ConfigFile.min_pulse_us);
+  Body.Lines[4] = (display_line*)new display_line_int(4, " Max.T=", mStrValue5us, &Config::ConfigFile.max_pulse_us);
   Body.Lines[5] = (display_line*)new display_line(5, mSaveAll);
 }
 
@@ -540,12 +554,12 @@ void DisplayPPM(PRINT_MODES print_mode) {
     
     case 1: {
       edited = ChangeInt16(&Config::ConfigFile.frame_length_us, 
-        STEP_TUNING_us, 0, 32000);
+        STEP_TUNING_us<<1, 500, 32000);
     }
     break;
     case 2: {
       edited = ChangeInt16(&Config::ConfigFile.interval_us, 
-        STEP_TUNING_us, 0, 5000);
+        STEP_TUNING_us, 100, 1000);
     }
     break;
    case 3: {

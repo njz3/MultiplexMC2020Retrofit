@@ -49,8 +49,10 @@ void ReadButtons()
   if (digitalRead(3)==0) buttons |= BUTTONS_ID::BTN_MINUS;
   if (digitalRead(4)==0) buttons |= BUTTONS_ID::BTN_NEXT;
   if (digitalRead(5)==0) buttons |= BUTTONS_ID::BTN_PAGE;
-  if (digitalRead(6)==0) buttons |= BUTTONS_ID::BTN_OPT1;
-  if (digitalRead(7)==0) buttons |= BUTTONS_ID::BTN_OPT2;
+  if (digitalRead(6)==0) buttons |= BUTTONS_ID::BTN_DUAL_RATE;
+  if (digitalRead(7)==0) buttons |= BUTTONS_ID::BTN_COUPLING;
+  if (digitalRead(8)==0) buttons |= BUTTONS_ID::BTN_OPT1_CH;
+  if (digitalRead(9)==0) buttons |= BUTTONS_ID::BTN_OPT2_CH;
 
   LastButtonsPressed = ButtonsPressed;
   ButtonsPressed = buttons;
@@ -109,8 +111,62 @@ void ReadValues() {
 }
 
 void ProcessValues() {
+  bool dual_rate = IS_PRESSED(BTN_DUAL_RATE);
+  bool coupling  = IS_PRESSED(BTN_COUPLING);
+  
   for(int i=0; i<Config::ConfigFile.NBchannels; i++) {
-    chan_mv[i] = constrain(adc_mv[i], Config::ConfigFile.channels[i].min_mV, Config::ConfigFile.channels[i].max_mV);
+    int fullmax_mv = Config::ConfigFile.channels[i].max_mV + Config::ConfigFile.channels[i].trim_mV;
+    int fullmin_mv = Config::ConfigFile.channels[i].min_mV + Config::ConfigFile.channels[i].trim_mV;
+    int full_mv = max(abs(fullmax_mv), abs(fullmin_mv));
+
+    if (coupling) {
+        // Get value from master channel adc
+        int master = Config::ConfigFile.channels[i].master_channel;
+        chan_mv[i] = adc_mv[master];
+    } else {
+        // Save current analog input value in mV
+        chan_mv[i] = adc_mv[i];
+    }
+
+    // Saturation
+    if (chan_mv[i]<Config::ConfigFile.channels[i].min_mV)
+      chan_mv[i] = Config::ConfigFile.channels[i].min_mV;
+    if (chan_mv[i]>Config::ConfigFile.channels[i].max_mV)
+      chan_mv[i] = Config::ConfigFile.channels[i].max_mV;
+  
+    // Add trim offset for voltage to center it in [-min/max]
+    chan_mv[i] += Config::ConfigFile.channels[i].trim_mV;
+    // Inverted ? Invert sign of voltage
+    if ((Config::ConfigFile.channels[i].options & CONFIG_CHANNEL_OPT_INVERTED)!=0) {
+      chan_mv[i] = -chan_mv[i];
+    }
+
+    // Dual rate ? Amplify the value by the rate
+    if (dual_rate && ((Config::ConfigFile.channels[i].options & CONFIG_CHANNEL_OPT_DUALRATE)!=0)) {
+      chan_mv[i] = (int)(chan_mv[i]*Config::ConfigFile.channels[i].rate);
+    }
+
+    // Power law ? Amplify small difference to center
+    if ((Config::ConfigFile.channels[i].options & CONFIG_CHANNEL_OPT_POWERLAW)!=0) {
+      float normalized = chan_mv[i] / full_mv;
+      float corrected = pow(normalized, 2.0f);
+      chan_mv[i] =(int)(corrected * full_mv);
+    }
+
+    // Convert channel mV to channel ms
+    chan_ms[i] = map(chan_mv[i], fullmin_mv, fullmax_mv, Config::ConfigFile.channels[i].min_us, Config::ConfigFile.channels[i].max_us);
+    // Add trim offset for pulse
+    chan_ms[i] += Config::ConfigFile.channels[i].trim_us;
+    
+    // Saturation
+    if (chan_ms[i]<Config::ConfigFile.channels[i].min_us)
+      chan_ms[i] = Config::ConfigFile.channels[i].min_us;
+    if (chan_ms[i]>Config::ConfigFile.channels[i].max_us)
+      chan_ms[i] = Config::ConfigFile.channels[i].max_us;
+    
+    
+    float us_to_pct = 100.0f/((float)(Config::ConfigFile.channels[i].max_us - Config::ConfigFile.channels[i].min_us));
+    chan_pct[i] = (int)((chan_ms[i]-Config::ConfigFile.channels[i].min_us)*us_to_pct);
 
     /*
     // Power law ? Amplify small difference to center
@@ -120,41 +176,7 @@ void ProcessValues() {
       float scaled = pow(normalized, Config::ConfigFile.channels[idx].rate)* 2500.0f;
     }
     */
-    int min_us = Config::ConfigFile.channels[i].min_us;
-    int max_us = Config::ConfigFile.channels[i].max_us;
     
-    // Dual rate ? Restrict to a smaller range
-    if ((Config::ConfigFile.channels[i].options & CONFIG_CHANNEL_OPT_DUALRATE)!=0) {
-      int med = (min_us + max_us)>>1;
-      int half_range = (max_us - min_us)>>2;
-      min_us = med - half_range;
-      max_us = med + half_range;
-    }
-
-    // Power law ? Amplify small difference to center
-    if ((Config::ConfigFile.channels[i].options & CONFIG_CHANNEL_OPT_DUALRATE)!=0) {
-      int med = (min_us + max_us)>>1;
-      int half_range = (max_us - min_us)>>2;
-      min_us = med - half_range;
-      max_us = med + half_range;
-    }
-
-    // Inverted ? Invert min and max
-    if ((Config::ConfigFile.channels[i].options & CONFIG_CHANNEL_OPT_INVERTED)!=0) {
-      min_us = Config::ConfigFile.channels[i].max_us;
-      max_us = Config::ConfigFile.channels[i].min_us;
-    }
-    chan_ms[i] = map(chan_mv[i], Config::ConfigFile.channels[i].min_mV, Config::ConfigFile.channels[i].max_mV, Config::ConfigFile.channels[i].min_us, Config::ConfigFile.channels[i].max_us);
-    // Add trim offset
-    chan_ms[i] += Config::ConfigFile.channels[i].trim_us;
-    if (chan_ms[i]<Config::ConfigFile.channels[i].min_us)
-      chan_ms[i] = Config::ConfigFile.channels[i].min_us;
-    if (chan_ms[i]>Config::ConfigFile.channels[i].max_us)
-      chan_ms[i] = Config::ConfigFile.channels[i].max_us;
-
-    float us_to_pct = 100.0f/((float)(Config::ConfigFile.channels[i].max_us - Config::ConfigFile.channels[i].min_us));
-    chan_pct[i] = (int)((chan_ms[i]-Config::ConfigFile.channels[i].min_us)*us_to_pct);
-
     // Set PPM value
     ppmEncoder.setChannel(i, chan_ms[i]);
   }

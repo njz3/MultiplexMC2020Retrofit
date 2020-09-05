@@ -89,15 +89,17 @@ typedef struct {
   byte master_channel;
   // Channel name (pleas restrict to 8 characters only)
   char name[8];
-  // Minimum voltage
+  // Minimum analog voltage
   int16_t min_mV;
-  // Maximum voltage
+  // Maximum analog voltage
   int16_t max_mV;
-  // Minimum us output
+  // Trim offset for analog voltage
+  int16_t trim_mV;
+  // Minimum us pulse output
   int16_t min_us;
-  // Maximum us output
+  // Maximum us pulse output
   int16_t max_us;
-  // Trim offset
+  // Trim offset for pulse timing
   int16_t trim_us;
   // For dual rate or coupling: scale factor
   float rate;

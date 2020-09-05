@@ -14,10 +14,10 @@ const char* ChannelNames[] = {
   "Direc.",
   "Gaz   ",
   "Ailern",
+  "Flap  ",
+  "Train ",
   "Trim1 ",
   "Trim2 ",
-  "Flap  ",
-  "Train "
 };
 
 int SaveConfigToEEPROM()
@@ -92,12 +92,14 @@ void ResetConfig()
     if (i<4) {
       ConfigFile.channels[i].min_mV = MIN_MANCHES_mV;
       ConfigFile.channels[i].max_mV = MAX_MANCHES_mV;
+      ConfigFile.channels[i].trim_mV = -((MIN_MANCHES_mV + MAX_MANCHES_mV)>>1);
       ConfigFile.channels[i].min_us = 1000;
       ConfigFile.channels[i].max_us = 2200;
       ConfigFile.channels[i].trim_us = 0;
     } else {
       ConfigFile.channels[i].min_mV = MIN_AUX_mV;
       ConfigFile.channels[i].max_mV = MAX_AUX_mV;
+      ConfigFile.channels[i].trim_mV = -((MIN_AUX_mV + MAX_AUX_mV)>>1);
       ConfigFile.channels[i].min_us = 1000;
       ConfigFile.channels[i].max_us = 2200;
       ConfigFile.channels[i].trim_us = 0;

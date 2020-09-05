@@ -8,8 +8,10 @@ enum BUTTONS_ID : uint16_t
   BTN_MINUS = (1<<1),
   BTN_NEXT  = (1<<2),
   BTN_PAGE  = (1<<3),
-  BTN_OPT1  = (1<<4),
-  BTN_OPT2  = (1<<5),
+  BTN_DUAL_RATE = (1<<4),
+  BTN_COUPLING  = (1<<5),
+  BTN_OPT1_CH  = (1<<6),
+  BTN_OPT2_CH  = (1<<7),
 };
 
 

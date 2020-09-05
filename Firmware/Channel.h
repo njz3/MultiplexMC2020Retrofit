@@ -1,5 +1,3 @@
-//Taken from Christopher Schirner
-// https://github.com/schinken/PPMEncoder
 #pragma once
 
 #include "Config.h"
