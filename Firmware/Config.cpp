@@ -16,8 +16,9 @@ const char* ChannelNames[] = {
   "Ailern",
   "Flap  ",
   "Train ",
-  "Trim1 ",
-  "Trim2 ",
+  "TrmPrf",
+  "TrmDir",
+  "TrmAil",
 };
 
 int SaveConfigToEEPROM()
@@ -78,7 +79,7 @@ void ResetConfig()
     ConfigFile.channels[i].channel = i+1;
     ConfigFile.channels[i].options = 0;
 
-    if (i<8) {
+    if (i<9) {
       strncpy(ConfigFile.channels[i].name, ChannelNames[i], 9);
     } else {
       char buf[20];
@@ -88,22 +89,23 @@ void ResetConfig()
     
     ConfigFile.channels[i].rate = 2.0f;
     ConfigFile.channels[i].master_channel = i;
+    ConfigFile.channels[i].min_us = 1000;
+    ConfigFile.channels[i].max_us = 2200;
+    ConfigFile.channels[i].trim_us = 0;
     
     if (i<4) {
       ConfigFile.channels[i].min_mV = MIN_MANCHES_mV;
       ConfigFile.channels[i].max_mV = MAX_MANCHES_mV;
-      ConfigFile.channels[i].trim_mV = -((MIN_MANCHES_mV + MAX_MANCHES_mV)>>1);
-      ConfigFile.channels[i].min_us = 1000;
-      ConfigFile.channels[i].max_us = 2200;
-      ConfigFile.channels[i].trim_us = 0;
+      ConfigFile.channels[i].trim_mV = ((MIN_MANCHES_mV + MAX_MANCHES_mV)>>1);
+    } else if (i>=6 && i<=8) {
+      ConfigFile.channels[i].min_mV = MIN_AUX_mV;
+      ConfigFile.channels[i].max_mV = MAX_AUX_mV;
+      ConfigFile.channels[i].trim_mV = ((MIN_AUX_mV + MAX_AUX_mV)>>1);
     } else {
       ConfigFile.channels[i].min_mV = MIN_AUX_mV;
       ConfigFile.channels[i].max_mV = MAX_AUX_mV;
-      ConfigFile.channels[i].trim_mV = -((MIN_AUX_mV + MAX_AUX_mV)>>1);
-      ConfigFile.channels[i].min_us = 1000;
-      ConfigFile.channels[i].max_us = 2200;
-      ConfigFile.channels[i].trim_us = 0;
-    }
+      ConfigFile.channels[i].trim_mV = ((MIN_AUX_mV + MAX_AUX_mV)>>1);
+    } 
   }
 }
 

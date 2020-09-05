@@ -23,6 +23,8 @@
 #define MAX_CHANNELS (12)
 #define NB_CHANNELS (6)
 #define ADC_VBAT (15)
+#define ADC_TRIM1 (8)
+#define ADC_TRIM2 (9)
 
 #elif defined(MC2020_NANO)
 

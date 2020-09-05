@@ -337,8 +337,8 @@ void DisplayChannels(PRINT_MODES print_mode) {
     case 4: {
       ChangeInt16(&Config::ConfigFile.channels[idx].trim_mV, 
         STEP_TUNING_mV,
-        -Config::ConfigFile.channels[idx].max_mV,
-        -Config::ConfigFile.channels[idx].min_mV);
+        Config::ConfigFile.channels[idx].min_mV,
+        Config::ConfigFile.channels[idx].max_mV);
     }
     break;
     case 5: {

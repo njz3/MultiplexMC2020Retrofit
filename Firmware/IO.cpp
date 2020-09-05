@@ -111,15 +111,12 @@ void ReadValues() {
 }
 
 void ProcessValues() {
+  
   bool dual_rate = IS_PRESSED(BTN_DUAL_RATE);
   bool coupling  = IS_PRESSED(BTN_COUPLING);
   
   for(int i=0; i<Config::ConfigFile.NBchannels; i++) {
-    int range_mv = Config::ConfigFile.channels[i].max_mV - Config::ConfigFile.channels[i].min_mV;
-    int fullmax_mv = Config::ConfigFile.channels[i].max_mV + Config::ConfigFile.channels[i].trim_mV;
-    int fullmin_mv = Config::ConfigFile.channels[i].min_mV + Config::ConfigFile.channels[i].trim_mV;
-    int full_mv = max(abs(fullmax_mv), abs(fullmin_mv));
-
+  
     if (coupling) {
         // Get value from master channel adc
         int master = Config::ConfigFile.channels[i].master_channel;
@@ -136,7 +133,8 @@ void ProcessValues() {
       chan_mv[i] = Config::ConfigFile.channels[i].max_mV;
   
     // Add trim offset for voltage to center it in [-min/max]
-    chan_mv[i] += Config::ConfigFile.channels[i].trim_mV;
+    chan_mv[i] -= Config::ConfigFile.channels[i].trim_mV;
+
     // Inverted ? Invert sign of voltage
     if ((Config::ConfigFile.channels[i].options & CONFIG_CHANNEL_OPT_INVERTED)!=0) {
       chan_mv[i] = -chan_mv[i];
@@ -146,6 +144,29 @@ void ProcessValues() {
     if (dual_rate && ((Config::ConfigFile.channels[i].options & CONFIG_CHANNEL_OPT_DUALRATE)!=0)) {
       chan_mv[i] = (int)(chan_mv[i]*Config::ConfigFile.channels[i].rate);
     }
+  }
+
+  
+  for(int i=0; i<Config::ConfigFile.NBchannels; i++) {
+  
+    // For mega 2560, add trim offset from A8/A9/A10 for channel 1/2/4
+#ifdef MC2020_MEGA
+   switch(i) {
+    case 1:
+      chan_mv[i] -= chan_mv[6];
+      break;
+    case 2:
+      chan_mv[i] -= chan_mv[7];
+      break;
+    case 4:
+      chan_mv[i] -= chan_mv[8];
+      break;
+   }
+#endif
+
+    int fullmax_mv = Config::ConfigFile.channels[i].max_mV - Config::ConfigFile.channels[i].trim_mV;
+    int fullmin_mv = Config::ConfigFile.channels[i].min_mV - Config::ConfigFile.channels[i].trim_mV;
+    int full_mv = max(abs(fullmax_mv), abs(fullmin_mv));
 
     // Power law ? Amplify small difference to center
     if ((Config::ConfigFile.channels[i].options & CONFIG_CHANNEL_OPT_POWERLAW)!=0) {
@@ -155,7 +176,7 @@ void ProcessValues() {
     }
 
     // Convert channel mV to channel ms
-    chan_ms[i] = map(chan_mv[i], fullmin_mv, fullmax_mv, Config::ConfigFile.channels[i].min_us, Config::ConfigFile.channels[i].max_us);
+    chan_ms[i] = map(chan_mv[i], -full_mv, full_mv, Config::ConfigFile.channels[i].min_us, Config::ConfigFile.channels[i].max_us);
     // Add trim offset for pulse
     chan_ms[i] += Config::ConfigFile.channels[i].trim_us;
     

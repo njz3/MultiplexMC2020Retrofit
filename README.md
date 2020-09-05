@@ -47,10 +47,10 @@ Use a SSD1327 OLED 128x128 OLED display in place of the liquid crystal display.
 | D12   |              |                  |           -          |
 | D11   |              |                  |           -          |
 | D10   | PPM          | Pulses 0/5V      | Entrée module HF     |
-| D9    |              |                  |           -          |
-| D8    |              |                  |           -          |
-| D7    | Btn Option 2 | Entrée bouton    | GND à ramener via bouton |
-| D6    | Btn Option 1 | Entrée bouton    | GND à ramener via bouton |
+| D9    | Btn OPtion 2 | Entrée bouton    | GND à ramener via bouton |
+| D8    | Btn Option 1 | Entrée bouton    | GND à ramener via bouton |
+| D7    | Btn Coupling | Entrée bouton    | GND à ramener via bouton |
+| D6    | Btn Dual Rate | Entrée bouton    | GND à ramener via bouton |
 | D5    | Btn Page     | Entrée bouton    | GND à ramener via bouton |
 | D4    | Btn Next     | Entrée bouton    | GND à ramener via bouton |
 | D3    | Btn Moins    | Entrée bouton    | GND à ramener via bouton |
