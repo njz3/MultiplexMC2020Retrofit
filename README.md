@@ -44,13 +44,13 @@ Use a SSD1327 OLED 128x128 OLED display in place of the liquid crystal display.
 
 | Pin   | Nom          |  Type de Signal  |    A relier sur      |
 |:------|:-------------|:-----------------|:--------------------:|
-| D12   |              |                  |           -          |
+| D12   | Btn Reset Config | Entrée bouton | GND à ramener via bouton |
 | D11   |              |                  |           -          |
 | D10   | PPM          | Pulses 0/5V      | Entrée module HF     |
 | D9    | Btn OPtion 2 | Entrée bouton    | GND à ramener via bouton |
 | D8    | Btn Option 1 | Entrée bouton    | GND à ramener via bouton |
 | D7    | Btn Coupling | Entrée bouton    | GND à ramener via bouton |
-| D6    | Btn Dual Rate | Entrée bouton    | GND à ramener via bouton |
+| D6    | Btn Dual Rate | Entrée bouton   | GND à ramener via bouton |
 | D5    | Btn Page     | Entrée bouton    | GND à ramener via bouton |
 | D4    | Btn Next     | Entrée bouton    | GND à ramener via bouton |
 | D3    | Btn Moins    | Entrée bouton    | GND à ramener via bouton |
@@ -82,4 +82,64 @@ Use a SSD1327 OLED 128x128 OLED display in place of the liquid crystal display.
 [SCL NANO] -----o----- [SCL OLED]
 
 ```
+
+# Wiring pour MEGA2560 sur émetteur MC2020
+
+![Mega2560 pinout](doc/mega2560pinout.png)
+
+<div style="page-break-after: always"></div>
+
+![OLED pinout](doc/Diagram-OLED.jpg)
+
+<div style="page-break-after: always"></div>
+
+*Prévoir une résistance de pull-up de 4.7kOhm à 5V sur SDA et SCL !*
+
+| Pin   | Nom          |  Type de Signal  |    A relier sur      |
+|:------|:-------------|:-----------------|:--------------------:|
+| D13   | Led interne  | Di.Out 0/5V      |          -           |
+| 3.3V  | 3.3V Régul.  | Sortie 3.3V      |      OLED VCC        |
+| AREF  | Ref.interne  | 0..5V            |          -           |
+| A0    | Profondeur   | An.In 0..5V      | Potar Profondeur     |
+| A1    | Direction    | An.In 0..5V      | Potar Direction      |
+| A2    | Gaz          | An.In 0..5V      | Potar Gaz            |
+| A3    | Aileron      | An.In 0..5V      | Potar Aileron        |
+| A4    | Flap         | An.In 0..5V      | Potar volets         |
+| A5    | Train        | An.In 0..5V      | Potar Train          |
+| A6    | Trim1        | An.In 0..5V      | Trim Profondeur      |
+| A7    | Trim2        | An.In 0..5V      | Trim Direction       |
+| A8    | Trim3        | An.In 0..5V      | Trim Gaz             |
+| A9    | Trim4        | An.In 0..5V      | Trim Aileron         |
+| +5V   | 5V Régul.    | Sortie 5V        | commun des pull-up 4.7kOhm   |
+| RST   | Reset µC     | Entrée GND       |          -           |
+| GND   | Masse        | GND              | commun GND           |
+| VIN   | Alim régul.  | 7-12V            | (+) batteries        |
+
+
+<div style="page-break-after: always"></div>
+
+
+| Pin   | Nom          |  Type de Signal  |    A relier sur      |
+|:------|:-------------|:-----------------|:--------------------:|
+| SDA   | SDA (I2C)    | I2C Data 5V      | OLED SDA et pull-up 4.7kOhm |
+| SCL   | SCL (I2C)    | I2C Clock 5V     | OLED SCL et pull-up 4.7kOhm |
+| D12   | Btn Reset Config | Entrée bouton | GND à ramener via bouton |
+| D11   |              |                  |           -          |
+| D10   | PPM          | Pulses 0/5V      | Entrée module HF     |
+| D9    | Btn OPtion 2 | Entrée bouton    | GND à ramener via bouton |
+| D8    | Btn Option 1 | Entrée bouton    | GND à ramener via bouton |
+| D7    | Btn Coupling | Entrée bouton    | GND à ramener via bouton |
+| D6    | Btn Dual Rate | Entrée bouton   | GND à ramener via bouton |
+| D5    | Btn Page     | Entrée bouton    | GND à ramener via bouton |
+| D4    | Btn Next     | Entrée bouton    | GND à ramener via bouton |
+| D3    | Btn Moins    | Entrée bouton    | GND à ramener via bouton |
+| D2    | Btn Plus     | Entrée bouton    | GND à ramener via bouton |
+| GND   | Masse        | GND              | commun GND           |
+| RST   | Reset µC     | Entrée GND       |           -          |
+| RX0   |              |                  |           -          |
+| TX1   |              |                  |           -          |
+
+
+<div style="page-break-after: always"></div>
+
 

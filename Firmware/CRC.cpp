@@ -5,7 +5,7 @@
 
 namespace CRC {
   
-#if defined(MEGA2560)
+#if defined(MC2020_MEGA)
 
 // https://stackoverflow.com/questions/51752284/how-to-calculate-crc8-in-c
 static unsigned char const crc8x_table[] = {

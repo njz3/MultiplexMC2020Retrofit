@@ -146,20 +146,22 @@ void ProcessValues() {
     }
   }
 
-  
   for(int i=0; i<Config::ConfigFile.NBchannels; i++) {
   
     // For mega 2560, add trim offset from A8/A9/A10 for channel 1/2/4
-#ifdef MC2020_MEGA
+#if defined(MC2020_MEGA)
    switch(i) {
+    case 0:
+      chan_mv[i] += chan_mv[6];
+      break;
     case 1:
-      chan_mv[i] -= chan_mv[6];
+      chan_mv[i] += chan_mv[7];
       break;
     case 2:
-      chan_mv[i] -= chan_mv[7];
+      chan_mv[i] += chan_mv[8];
       break;
-    case 4:
-      chan_mv[i] -= chan_mv[8];
+    case 3:
+      chan_mv[i] += chan_mv[9];
       break;
    }
 #endif
@@ -190,23 +192,9 @@ void ProcessValues() {
     float us_to_pct = 100.0f/((float)(Config::ConfigFile.channels[i].max_us - Config::ConfigFile.channels[i].min_us));
     chan_pct[i] = (int)((chan_ms[i]-Config::ConfigFile.channels[i].min_us)*us_to_pct);
 
-    /*
-    // Power law ? Amplify small difference to center
-    if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_POWERLAW)!=0) {
-      float range = (float)(Config::ConfigFile.channels[i].max_mV - Config::ConfigFile.channels[i].min_mV);
-      float normalized = (float)(chanctr_mv[i] / range);
-      float scaled = pow(normalized, Config::ConfigFile.channels[idx].rate)* 2500.0f;
-    }
-    */
-    if (i==0) {
-      Serial.println("Prof.");
-      Serial.println(fullmax_mv);
-      Serial.println(fullmin_mv);
-      Serial.println(full_mv);
-    }
-
     // Set PPM value
     ppmEncoder.setChannel(i, chan_ms[i]);
+
   }
 }
 
