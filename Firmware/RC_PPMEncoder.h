@@ -26,6 +26,7 @@ class PPMEncoder {
     static uint16_t PPM_INTERVAL_LENGTH_us;
     static uint16_t PPM_FRAME_LENGTH_us;
     static uint16_t MIN_us;
+    static uint16_t MED_us;
     static uint16_t MAX_us;
 
     void setNbChannel(uint8_t numChannels);

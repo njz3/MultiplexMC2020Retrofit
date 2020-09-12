@@ -9,12 +9,19 @@
 // Macro to use PORTD access for D10 on Mega2560
 //#define FAST_WRITE_D10_MEGA2560
 
+
+/* Sens de modulation Multiplex */
+#define SET_PIN_LEVEL_INTERVAL()    setPinLevel(HIGH);
+#define SET_PIN_LEVEL_PULSE()       setPinLevel(LOW);
+#define SET_PIN_LEVEL_SYNC()        setPinLevel(LOW);
+
 // Singleton
 PPMEncoder ppmEncoder;
 
 uint16_t PPMEncoder::PPM_INTERVAL_LENGTH_us = 300;
 uint16_t PPMEncoder::PPM_FRAME_LENGTH_us = 20000;
 uint16_t PPMEncoder::MIN_us = 1000;
+uint16_t PPMEncoder::MED_us = 1500; /**< arbitrary median value */
 uint16_t PPMEncoder::MAX_us = 2200;
 
 void PPMEncoder::begin(uint8_t pin) {
@@ -25,9 +32,6 @@ void PPMEncoder::begin(uint8_t pin, uint8_t ch) {
   // Stop interupts
   cli();
 
-  pinMode(pin, OUTPUT);
-  digitalWrite(pin, LOW);
-
   state = true;
   elapsed_us = 0;
   currentChannel = 0;
@@ -37,10 +41,14 @@ void PPMEncoder::begin(uint8_t pin, uint8_t ch) {
   }
   numChannels = ch;
   outputPin = pin;
+
+  pinMode(pin, OUTPUT);
+  SET_PIN_LEVEL_SYNC();
+
   state = PPM_STATE::WAITING_START_FRAME;
   
   for (uint8_t ch = 0; ch < numChannels; ch++) {
-    setChannelPercent(ch, 0);
+    setChannel(ch, PPMEncoder::MED_us); // init with arbitrary
   }
 
   // Setup for 16000000/8(prescaler) = 2MHz timer1 clock (so 1 tick equals 0.5us)
@@ -50,27 +58,26 @@ void PPMEncoder::begin(uint8_t pin, uint8_t ch) {
 
   // Prepare timer1 values for first run
   TCCR1A = 0;
-  OCR1A = 100<<1; // x2 = 100us
+  TCNT1 = 0;
+  OCR1A = 200*2; /* program the 1st interrupt 200us later */
   
   // Enable interrupts
   sei();
 }
 
 void PPMEncoder::setNbChannel(uint8_t numChannels) {
-  if (numChannels>=MAX_CHANNEL)
-    return;
-  this->numChannels = numChannels;
+   if (numChannels<MAX_CHANNEL)
+      this->numChannels = numChannels;
 }
 
 void PPMEncoder::setChannel(uint8_t channel, uint16_t value) {
-  if (channel>=numChannels)
-    return;
-  channels[channel] = constrain(value, PPMEncoder::MIN_us, PPMEncoder::MAX_us);
+   if (channel<numChannels)
+      channels[channel] = constrain(value, PPMEncoder::MIN_us, PPMEncoder::MAX_us);
 }
 
 void PPMEncoder::setChannelPercent(uint8_t channel, uint8_t percent) {
-  percent = constrain(percent, 0, 100);
-  setChannel(channel, map(percent, 0, 100, PPMEncoder::MIN_us, PPMEncoder::MAX_us));
+   percent = constrain(percent, 0, 100);
+   setChannel(channel, map(percent, 0, 100, PPMEncoder::MIN_us, PPMEncoder::MAX_us));
 }
 
 void PPMEncoder::setPinLevel(int level) {
@@ -85,62 +92,50 @@ void PPMEncoder::setPinLevel(int level) {
 }
 
 void PPMEncoder::interrupt() {
-  // Clear counter to reset interrupt flag
-  TCNT1 = 0;
+   // Clear counter to reset interrupt flag
+   TCNT1 = 0;
   
-  // Should start with this
-  if (state==PPM_STATE::WAITING_START_FRAME) {
-    // Starting first pulse
-    setPinLevel(HIGH);
-    
-    // Will wait for channel duration
-    OCR1A = (channels[currentChannel]<<1) - 4; // 4cycles for processing time
+   switch(state)
+   {
+      case WAITING_START_FRAME:     // Should start with this
+         currentChannel = 0;
+         SET_PIN_LEVEL_INTERVAL();  // Starting the interval before the first pulse
+         // next interrupt will happen after interval duration
+         OCR1A = PPM_INTERVAL_LENGTH_us*2 - 4; // 4cycles for processing time;
+         elapsed_us = PPM_INTERVAL_LENGTH_us;  // set initial value
+         state = WAITING_INTERVAL;
+         break;
 
-    // Add channel pulse time
-    elapsed_us = elapsed_us + channels[currentChannel];
-    // State is now pulsing channel
-    state = PPM_STATE::PULSING_CHANNEL;
-    
-  } else if (state==PPM_STATE::WAITING_INTERVAL) {
-    // Starting first pulse
-    setPinLevel(HIGH);
-    
-    // Interval done, wait for next channel length
-    OCR1A = ((channels[currentChannel])<<1) - 4; // 4cycles for processing time
-    
-    elapsed_us = elapsed_us + channels[currentChannel];
-    state = PPM_STATE::PULSING_CHANNEL;
-    
-  } else if (state==PPM_STATE::PULSING_CHANNEL) {
-    
-    // Terminating pulse
-    setPinLevel(LOW);
-    
-    // Either add a 300us step and go to next channel, or wait until next frame
-    currentChannel++;
-    if (currentChannel < numChannels) {
-      // Insert a wait interval
-      OCR1A = (PPM_INTERVAL_LENGTH_us<<1) - 6; // 6cycles for processing time
-      // Add interval pulse time
-      elapsed_us = elapsed_us + PPM_INTERVAL_LENGTH_us;
-      // State is now waiting interval
-      state = PPM_STATE::WAITING_INTERVAL;      
-    } else {
-      // All done, wait until next frame
+      case WAITING_INTERVAL:    // interval done, so now starting pulse or starting sync
+         if (currentChannel < numChannels)
+         {
+            SET_PIN_LEVEL_PULSE(); // Starting pulse
+            // next interrupt will happen after pulse duration
+            OCR1A = (channels[currentChannel]*2) - 12; // 12ticks for processing time (isr delay)
+            elapsed_us += channels[currentChannel];   // add channel duration
+            state = PULSING_CHANNEL;
+            currentChannel++;
+         }
+         else
+         {
+            SET_PIN_LEVEL_SYNC(); // Starting sync
+            // next interrupt will happen after sync duration
+            OCR1A = ((PPM_FRAME_LENGTH_us - elapsed_us)<<1) - 12; // 12ticks for processing time (isr delay)
+            state = WAITING_START_FRAME;
+            currentChannel = 0; // optional anyway reseted at case WAITING_START_FRAME:
+         }
+         break;
 
-      // Configure timer for next frame start
-      OCR1A = ((PPM_FRAME_LENGTH_us - elapsed_us)<<1) - 6; // 6cycles for processing time
-
-      // Next Channel will be channel 0
-      currentChannel = 0;
-      // Reset frame timing and go back to waiting start
-      elapsed_us = 0;
-      state = PPM_STATE::WAITING_START_FRAME;
-    }
+      case PULSING_CHANNEL:  // pulse done, so now starting interval
+         SET_PIN_LEVEL_INTERVAL();  // Starting the interval
+         // next interrupt will happen after interval duration
+         OCR1A = PPM_INTERVAL_LENGTH_us*2 - 12;  // 12ticks for processing time (isr delay);
+         elapsed_us += PPM_INTERVAL_LENGTH_us;  // add interval duration
+         state = WAITING_INTERVAL;
+         break;
   }
-  
 }
 
 ISR(TIMER1_COMPA_vect) {
-  ppmEncoder.interrupt();
+   ppmEncoder.interrupt();
 }
