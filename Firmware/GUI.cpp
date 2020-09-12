@@ -31,7 +31,7 @@ bool ChangeInt16(int16_t *pVal, int16_t stp, int16_t min, int16_t max) {
   return edited;
 }
 
-bool ChangeInt8(uint8_t *pVal, int8_t stp, int8_t min, int8_t max) {
+bool ChangeUInt8(uint8_t *pVal, uint8_t stp, uint8_t min, uint8_t max) {
   bool edited = false;
   if (IS_PRESSED(BUTTONS_ID::BTN_PLUS)) {
     edited = true;
@@ -485,7 +485,7 @@ void DisplayChannelsOptions(PRINT_MODES print_mode) {
     }
     break;
     case 5: {
-      edited = ChangeInt8(&Config::ConfigFile.channels[idx].master_channel, 1, 0, Config::ConfigFile.NBchannels-1);
+      edited = ChangeUInt8(&Config::ConfigFile.channels[idx].master_channel, 1, 0, Config::ConfigFile.NBchannels-1);
     }
     break;
     case 6: {
