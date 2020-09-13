@@ -1,14 +1,25 @@
 //Taken from Christopher Schirner
 // https://github.com/schinken/PPMEncoder
-
+#include "Config.h"
 #include "RC_PPMEncoder.h"
 
 // UNUSED: the macro sets or clears the appropriate bit in port D if the pin is less than 8 or port B if between 8 and 13
 //#define fastWrite(_pin_, _state_) ( _pin_ < 8 ? (_state_ ?  PORTD |= 1 << _pin_ : PORTD &= ~(1 << _pin_ )) : (_state_ ?  PORTB |= 1 << (_pin_ -8) : PORTB &= ~(1 << (_pin_ -8)  )))
 
+//#define TEST_PPM_CONST_CHANNEL
+
 // Macro to use PORTD access for D10 on Mega2560
 //#define FAST_WRITE_D10_MEGA2560
 
+
+#if defined(MC2020_MEGA)
+# define PPM_CORRECTION    7
+#elif defined(MC2020_NANO)
+# define PPM_CORRECTION    10 // TODO: measure the correct value here.
+#else
+# error "pouet"
+# define PPM_CORRECTION    0
+#endif
 
 /* Sens de modulation Multiplex */
 #define SET_PIN_LEVEL_INTERVAL()    setPinLevel(HIGH);
@@ -19,10 +30,11 @@
 PPMEncoder ppmEncoder;
 
 uint16_t PPMEncoder::PPM_INTERVAL_LENGTH_us = 300;
-uint16_t PPMEncoder::PPM_FRAME_LENGTH_us = 20000;
 uint16_t PPMEncoder::MIN_us = 1000;
 uint16_t PPMEncoder::MED_us = 1500; /**< arbitrary median value */
 uint16_t PPMEncoder::MAX_us = 2200;
+uint16_t PPMEncoder::PPM_FRAME_LENGTH_us = 20000;
+uint16_t PPMEncoder::PPM_SYNC_MIN_LENGTH_us = 3000;
 
 void PPMEncoder::begin(uint8_t pin) {
   begin(pin, PPM_DEFAULT_CHANNELS);
@@ -72,7 +84,20 @@ void PPMEncoder::setNbChannel(uint8_t numChannels) {
 
 void PPMEncoder::setChannel(uint8_t channel, uint16_t value) {
    if (channel<numChannels)
-      channels[channel] = constrain(value, PPMEncoder::MIN_us, PPMEncoder::MAX_us);
+   {
+      switch(channel)
+      {
+#ifdef TEST_PPM_CONST_CHANNEL
+         case 0: channels[0] = 1000; break;
+         case 1: channels[1] = 1100; break;
+         case 2: channels[2] = 1200; break;
+         case 3: channels[3] = 1300; break;
+#endif
+         default:
+            channels[channel] = constrain(value, PPMEncoder::MIN_us, PPMEncoder::MAX_us);
+            break;
+      }
+   }
 }
 
 void PPMEncoder::setChannelPercent(uint8_t channel, uint8_t percent) {
@@ -87,6 +112,7 @@ void PPMEncoder::setPinLevel(int level) {
   else
     PORTB &= ~(1<<4); // D10 on Mega2560
 #else
+  /* Caution: digitalWrite runtime might be not the same for Nano and Mega !! */
   digitalWrite(outputPin, level);
 #endif  
 }
@@ -101,7 +127,7 @@ void PPMEncoder::interrupt() {
          currentChannel = 0;
          SET_PIN_LEVEL_INTERVAL();  // Starting the interval before the first pulse
          // next interrupt will happen after interval duration
-         OCR1A = PPM_INTERVAL_LENGTH_us*2 - 4; // 4cycles for processing time;
+         OCR1A = PPM_INTERVAL_LENGTH_us*2 - PPM_CORRECTION; // some cycles for processing time;
          elapsed_us = PPM_INTERVAL_LENGTH_us;  // set initial value
          state = WAITING_INTERVAL;
          break;
@@ -111,8 +137,9 @@ void PPMEncoder::interrupt() {
          {
             SET_PIN_LEVEL_PULSE(); // Starting pulse
             // next interrupt will happen after pulse duration
-            OCR1A = (channels[currentChannel]*2) - 12; // 12ticks for processing time (isr delay)
-            elapsed_us += channels[currentChannel];   // add channel duration
+            // notice that interval duration is part of the channel duration in Multiplex modulation coding
+            OCR1A = (channels[currentChannel]-PPM_INTERVAL_LENGTH_us)*2 - PPM_CORRECTION; // some cycles for processing time
+            elapsed_us += channels[currentChannel]-PPM_INTERVAL_LENGTH_us;    // add pulse duration
             state = PULSING_CHANNEL;
             currentChannel++;
          }
@@ -120,16 +147,19 @@ void PPMEncoder::interrupt() {
          {
             SET_PIN_LEVEL_SYNC(); // Starting sync
             // next interrupt will happen after sync duration
-            OCR1A = ((PPM_FRAME_LENGTH_us - elapsed_us)<<1) - 12; // 12ticks for processing time (isr delay)
+            if(PPM_SYNC_MIN_LENGTH_us < (PPM_FRAME_LENGTH_us - elapsed_us) )
+               OCR1A = ((PPM_FRAME_LENGTH_us - elapsed_us)*2) - PPM_CORRECTION; // some cycles for processing time
+            else
+               OCR1A = ((PPM_SYNC_MIN_LENGTH_us)*2) - PPM_CORRECTION; // some cycles for processing time
             state = WAITING_START_FRAME;
-            currentChannel = 0; // optional anyway reseted at case WAITING_START_FRAME:
+            currentChannel = 0; // optional: anyway reseted at case WAITING_START_FRAME
          }
          break;
 
       case PULSING_CHANNEL:  // pulse done, so now starting interval
          SET_PIN_LEVEL_INTERVAL();  // Starting the interval
          // next interrupt will happen after interval duration
-         OCR1A = PPM_INTERVAL_LENGTH_us*2 - 12;  // 12ticks for processing time (isr delay);
+         OCR1A = PPM_INTERVAL_LENGTH_us*2 - PPM_CORRECTION; // some cycles for processing time
          elapsed_us += PPM_INTERVAL_LENGTH_us;  // add interval duration
          state = WAITING_INTERVAL;
          break;
