@@ -11,44 +11,62 @@ int currentDisplayValuesPage = 0;
 int currentDisplayValuesMode = 0;
 
 bool ChangeInt16(int16_t *pVal, int16_t stp, int16_t min, int16_t max) {
-  bool edited = false;
-  if (IS_PRESSED(BUTTONS_ID::BTN_PLUS)) {
-    edited = true;
-    if (pVal!=NULL) {
-      *pVal += stp;
-      if (*pVal>max)
-        *pVal = max;
-    }
-  }
-  if (IS_PRESSED(BUTTONS_ID::BTN_MINUS)) {
-    edited = true;
-    if (pVal!=NULL) {
-      *pVal -= stp;
-      if (*pVal<min)
-        *pVal = min;
-    }
-  }
+   bool edited = false;
+   if (pVal==NULL)
+      return edited;
+
+   if( IS_PRESSED(BUTTONS_ID::BTN_PLUS) )
+   {
+      if(*pVal != max) // if not already equal to max
+      {
+         edited = true;
+         if(*pVal < max-stp) // precheck overflow (avoid bug if max >= 32768 - step)
+            *pVal += stp;
+         else
+            *pVal = max;
+      }
+   }
+   else if( IS_PRESSED(BUTTONS_ID::BTN_MINUS) )
+   {
+      if(*pVal != min) // if not already equal to min
+      {
+         edited = true;
+         if( min+stp < *pVal)  // precheck underflow
+            *pVal -= stp;
+         else
+            *pVal = min;
+      }
+   }
   return edited;
 }
 
 bool ChangeUInt8(uint8_t *pVal, uint8_t stp, uint8_t min, uint8_t max) {
-  bool edited = false;
-  if (IS_PRESSED(BUTTONS_ID::BTN_PLUS)) {
-    edited = true;
-    if (pVal!=NULL) {
-      *pVal += stp;
-      if (*pVal>max)
-        *pVal = max;
-    }
-  }
-  if (IS_PRESSED(BUTTONS_ID::BTN_MINUS)) {
-    edited = true;
-    if (pVal!=NULL) {
-      *pVal -= stp;
-      if (*pVal<min)
-        *pVal = min;
-    }
-  }
+   bool edited = false;
+   if (pVal==NULL)
+      return edited;
+
+   if( IS_PRESSED(BUTTONS_ID::BTN_PLUS) )
+   {
+      if(*pVal != max) // if not already equal to max
+      {
+         edited = true;
+         if(*pVal < max-stp) // precheck overflow (avoid bug if max >= 256 - step)
+            *pVal += stp;
+         else
+            *pVal = max;
+      }
+   }
+   else if( IS_PRESSED(BUTTONS_ID::BTN_MINUS) )
+   {
+      if(*pVal != min) // if not already equal to min
+      {
+         edited = true;
+         if( min+stp < *pVal)
+            *pVal -= stp;
+         else
+            *pVal = min;
+      }
+   }
   return edited;
 }
 
