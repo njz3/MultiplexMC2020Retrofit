@@ -26,6 +26,9 @@
 #define SET_PIN_LEVEL_PULSE()       setPinLevel(LOW);
 #define SET_PIN_LEVEL_SYNC()        setPinLevel(LOW);
 
+
+extern void Task_Adc2Ppm(void);
+
 // Singleton
 PPMEncoder ppmEncoder;
 
@@ -62,6 +65,10 @@ void PPMEncoder::begin(uint8_t pin, uint8_t ch) {
   for (uint8_t ch = 0; ch < numChannels; ch++) {
     setChannel(ch, PPMEncoder::MED_us); // init with arbitrary
   }
+
+  /*******************/
+  Task_Adc2Ppm();
+  /*******************/
 
   // Setup for 16000000/8(prescaler) = 2MHz timer1 clock (so 1 tick equals 0.5us)
   TCCR1B = (1 << WGM12) | (1 << CS11); // CTC mode + Prescaler 8
@@ -153,6 +160,10 @@ void PPMEncoder::interrupt() {
                OCR1A = ((PPM_SYNC_MIN_LENGTH_us)*2) - PPM_CORRECTION; // some cycles for processing time
             state = WAITING_START_FRAME;
             currentChannel = 0; // optional: anyway reseted at case WAITING_START_FRAME
+
+            /**********************/
+            Task_Adc2Ppm();
+            /**********************/
          }
          break;
 

@@ -70,10 +70,19 @@ void setup() {
 
 
 void loop() {
-  
-  ReadValues();
-  ProcessValues();
   ReadButtons();
-  
   ProcessGUI();
+}
+
+
+/**
+ * Read Adc, Process Mixage and calculate the servomechanism values (usec).
+ * Normally executed every 20 ms.
+ * Done once before to send the ppm sequence7
+ */
+
+void Task_Adc2Ppm(void)
+{
+   ReadValues();
+   ProcessValues();
 }
