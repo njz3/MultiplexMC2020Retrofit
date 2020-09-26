@@ -17,12 +17,13 @@ void InitIOs()
   pinMode(A1, INPUT);
   pinMode(A2, INPUT);
   pinMode(A3, INPUT);
-  // A4/A5 used for I2C
+#ifndef MC2020_NANO // A4, A5 used for I2C
+  pinMode(A4, INPUT);
+  pinMode(A5, INPUT);
+#endif
   pinMode(A6, INPUT);
   pinMode(A7, INPUT);
 #ifdef MC2020_MEGA
-  pinMode(A4, INPUT);
-  pinMode(A5, INPUT);
   pinMode(A8, INPUT);
   pinMode(A9, INPUT);
   pinMode(A10, INPUT);
@@ -85,7 +86,7 @@ void ReadValues() {
   adc_vals[nb_adc++] = analogRead(A1);
   adc_vals[nb_adc++] = analogRead(A2);
   adc_vals[nb_adc++] = analogRead(A3);
-#ifndef MC2020_NANO
+#ifndef MC2020_NANO // A4, A5 used for I2C
   adc_vals[nb_adc++] = analogRead(A4);
   adc_vals[nb_adc++] = analogRead(A5);
 #endif
