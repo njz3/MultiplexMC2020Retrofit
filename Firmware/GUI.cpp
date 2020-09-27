@@ -77,7 +77,7 @@ bool ChangeBitUInt8(uint8_t *pVal, uint8_t bit) {
   }
   if (edited) {
     if ((*pVal & bit)!=0) {
-      *pVal &= ~bit;  
+      *pVal &= ~bit;
     } else {
       *pVal |= bit;
     }
@@ -165,15 +165,15 @@ struct ScreenBody
       }
     }
   };
-  
+
   void SetCursor(byte col, byte row) {
     Display.setCursor(col, (row<<1)+1);
   };
-  
+
   void Print(const char *str) {
     Display.print(str);
   };
-  
+
   void Print() {
     for(int row=0; row<MAX_BODY_LINES; row++) {
       if (Lines[row]!=NULL)
@@ -182,10 +182,10 @@ struct ScreenBody
         Display.clearLine((row<<1)+1);
     }
   };
-  
+
   void Refresh() {
     for(int row=0; row<MAX_BODY_LINES; row++) {
-      if (Lines[row]!=NULL) {    
+      if (Lines[row]!=NULL) {
         Lines[row]->refresh();
       }
     }
@@ -200,7 +200,7 @@ void MakeDisplayCurrentValuesPage()
   sprintf(buff, mFooterValues, currentDisplayValuesPage);
   Display.setFooter(buff);
   Display.refreshFooter();
-  
+
   Body.Delete();
   for (byte i=0; i<ScreenBody::MAX_BODY_LINES; i++) {
     int idx = (currentDisplayValuesPage*7) + i;
@@ -217,7 +217,7 @@ void MakeDisplayCurrentValuesPage()
         Body.Lines[i] = (display_line*)new display_line_int(i, Config::ConfigFile.channels[idx].name, mStrValue4mV, &chan_mv[idx]);
         break;
         case 3:
-        Body.Lines[i] = (display_line*)new display_line_int(i, Config::ConfigFile.channels[idx].name, mStrValue4us, &chan_ms[idx]);
+        Body.Lines[i] = (display_line*)new display_line_int(i, Config::ConfigFile.channels[idx].name, mStrValue4us, &chan_us[idx]);
         break;
       }
     }
@@ -248,7 +248,7 @@ void DisplayCurrentValues(PRINT_MODES print_mode) {
     MakeDisplayCurrentValuesPage();
     print_mode=PRINT_MODES::PRINT;
   }
-  
+
   if (print_mode==PRINT_MODES::PRINT) {
     MakeDisplayCurrentValuesPage();
     Body.Print();
@@ -265,7 +265,7 @@ void MakeDisplayChannelPage()
   sprintf(buff, mFooterChan, Config::ConfigFile.channels[currentDisplayChannelPage].name);
   Display.setFooter(buff);
   Display.refreshFooter();
-  
+
   Body.Delete();
   Body.Lines[0] = (display_line*)new display_line_str(0, " Name: ", "%s  ", Config::ConfigFile.channels[currentDisplayChannelPage].name);
   switch(currentDisplayValuesMode) {
@@ -280,7 +280,7 @@ void MakeDisplayChannelPage()
     Body.Lines[1] = (display_line*)new display_line_int(1, " C=", mStrValue4mV, &chan_mv[currentDisplayChannelPage]);
     break;
     case 3:
-    Body.Lines[1] = (display_line*)new display_line_int(1, " T=", mStrValue4us, &chan_ms[currentDisplayChannelPage]);
+    Body.Lines[1] = (display_line*)new display_line_int(1, " T=", mStrValue4us, &chan_us[currentDisplayChannelPage]);
     break;
   }
   Body.Lines[2] = (display_line*)new display_line_int(2, " Min.A=", mStrValue4mV, &Config::ConfigFile.channels[currentDisplayChannelPage].min_mV);
@@ -304,7 +304,7 @@ void DisplayChannels(PRINT_MODES print_mode) {
     currentDisplayChannelPage = Config::ConfigFile.NBchannels-1;
     print_mode=PRINT_MODES::PRINT;
   }
-  
+
   if (print_mode==PRINT_MODES::PRINT) {
     MakeDisplayChannelPage();
     Body.Print();
@@ -318,7 +318,7 @@ void DisplayChannels(PRINT_MODES print_mode) {
   bool edited = false;
   switch(currentEditLine) {
     case 0: {
-      edited = ChangeInt16(&currentDisplayChannelPage, 
+      edited = ChangeInt16(&currentDisplayChannelPage,
         1,
         0,
         Config::ConfigFile.NBchannels-1);
@@ -339,42 +339,42 @@ void DisplayChannels(PRINT_MODES print_mode) {
     }
     break;
     case 2: {
-      ChangeInt16(&Config::ConfigFile.channels[idx].min_mV, 
+      ChangeInt16(&Config::ConfigFile.channels[idx].min_mV,
         STEP_TUNING_mV,
         0,
         Config::ConfigFile.channels[idx].max_mV);
     }
     break;
     case 3: {
-      ChangeInt16(&Config::ConfigFile.channels[idx].max_mV, 
+      ChangeInt16(&Config::ConfigFile.channels[idx].max_mV,
         STEP_TUNING_mV,
         Config::ConfigFile.channels[idx].min_mV,
         5000);
     }
     break;
     case 4: {
-      ChangeInt16(&Config::ConfigFile.channels[idx].trim_mV, 
+      ChangeInt16(&Config::ConfigFile.channels[idx].trim_mV,
         STEP_TUNING_mV,
         Config::ConfigFile.channels[idx].min_mV,
         Config::ConfigFile.channels[idx].max_mV);
     }
     break;
     case 5: {
-      ChangeInt16(&Config::ConfigFile.channels[idx].min_us, 
+      ChangeInt16(&Config::ConfigFile.channels[idx].min_us,
         STEP_TUNING_us,
         0,
         Config::ConfigFile.channels[idx].max_us);
     }
     break;
     case 6: {
-      ChangeInt16(&Config::ConfigFile.channels[idx].max_us, 
+      ChangeInt16(&Config::ConfigFile.channels[idx].max_us,
         STEP_TUNING_us,
         Config::ConfigFile.channels[idx].min_us,
         5000);
     }
     break;
     case 7: {
-      ChangeInt16(&Config::ConfigFile.channels[idx].trim_us, 
+      ChangeInt16(&Config::ConfigFile.channels[idx].trim_us,
         STEP_TUNING_us,
         -((Config::ConfigFile.channels[idx].min_us+Config::ConfigFile.channels[idx].max_us)>>1),
         (Config::ConfigFile.channels[idx].min_us+Config::ConfigFile.channels[idx].max_us)>>1);
@@ -415,7 +415,7 @@ void MakeDisplayChannelsOptionsPage()
   sprintf(buff, mFooterChanOpt, Config::ConfigFile.channels[currentDisplayChannelPage].name);
   Display.setFooter(buff);
   Display.refreshFooter();
-  
+
   Body.Delete();
   Body.Lines[0] = (display_line*)new display_line_str(0, " Name: ", "%s  ", Config::ConfigFile.channels[currentDisplayChannelPage].name);
   Body.Lines[1] = (display_line*)new display_line(1, " Signe ");
@@ -441,42 +441,42 @@ void DisplayChannelsOptions(PRINT_MODES print_mode) {
     currentDisplayChannelPage = Config::ConfigFile.NBchannels-1;
     print_mode=PRINT_MODES::PRINT;
   }
-  
+
   int idx = currentDisplayChannelPage;
   if (print_mode==PRINT_MODES::PRINT) {
     MakeDisplayChannelsOptionsPage();
     Body.Print();
   } else {
     Body.Refresh();
-  
+
     Body.Lines[1]->refresh();
     if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_INVERTED)!=0)
       Display.print("Invert");
     else
       Display.print("Normal");
-      
+
     Body.Lines[2]->refresh();
     if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_COUPLING)!=0)
       Display.print("Yes");
     else
       Display.print("No ");
-          
+
     Body.Lines[3]->refresh();
     if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_DUALRATE)!=0)
       Display.println("Yes");
     else
       Display.println("No ");
-  
+
     Body.Lines[4]->refresh();
     if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_POWERLAW)!=0)
       Display.println("Power ");
     else
       Display.println("Linear");
-  
+
     Body.Lines[6]->refresh();
     Display.print((int)(Config::ConfigFile.channels[idx].rate*1000.0));
   }
-  
+
   Body.SetCursor(0, currentEditLine);
   Body.Print(">");
 
@@ -517,12 +517,12 @@ void DisplayChannelsOptions(PRINT_MODES print_mode) {
       }
       if (Config::ConfigFile.channels[idx].rate<0.25)
         Config::ConfigFile.channels[idx].rate = 0.25;
-      if (Config::ConfigFile.channels[idx].rate>=4.0) 
+      if (Config::ConfigFile.channels[idx].rate>=4.0)
         Config::ConfigFile.channels[idx].rate = 4.0;
     }
     break;
   }
-      
+
   if (edited) {
     MakeDisplayChannelsOptionsPage();
     Body.Print();
@@ -560,35 +560,35 @@ void DisplayPPM(PRINT_MODES print_mode) {
   } else {
     Body.Refresh();
   }
-  
+
   Body.SetCursor(0, currentEditLine);
   Body.Print(">");
 
   bool edited = false;
   switch(currentEditLine) {
     case 0: {
-      edited = ChangeInt16(&Config::ConfigFile.NBchannels, 
+      edited = ChangeInt16(&Config::ConfigFile.NBchannels,
         1, 1, MAX_CHANNELS);
     }
     break;
-    
+
     case 1: {
-      edited = ChangeInt16(&Config::ConfigFile.frame_length_us, 
+      edited = ChangeInt16(&Config::ConfigFile.frame_length_us,
         STEP_TUNING_us<<1, 500, 32000);
     }
     break;
     case 2: {
-      edited = ChangeInt16(&Config::ConfigFile.interval_us, 
+      edited = ChangeInt16(&Config::ConfigFile.interval_us,
         STEP_TUNING_us, 100, 1000);
     }
     break;
    case 3: {
-      edited = ChangeInt16(&Config::ConfigFile.min_pulse_us, 
+      edited = ChangeInt16(&Config::ConfigFile.min_pulse_us,
         STEP_TUNING_us, Config::ConfigFile.interval_us, Config::ConfigFile.max_pulse_us);
     }
     break;
     case 4: {
-      edited = ChangeInt16(&Config::ConfigFile.max_pulse_us, 
+      edited = ChangeInt16(&Config::ConfigFile.max_pulse_us,
         STEP_TUNING_us, Config::ConfigFile.min_pulse_us, Config::ConfigFile.frame_length_us);
     }
     break;
@@ -610,7 +610,7 @@ void DisplayPPM(PRINT_MODES print_mode) {
     ppmEncoder.MIN_us = Config::ConfigFile.min_pulse_us;
     ppmEncoder.MAX_us = Config::ConfigFile.max_pulse_us;
   }
-      
+
 }
 
 
@@ -628,7 +628,7 @@ enum STATE_MACHINE : uint8_t
 uint8_t state = STATE_MACHINE::INIT;
 
 void ProcessGUI() {
-  
+
   PRINT_MODES prt = PRINT_MODES::REFRESH;
   if (IS_PUSHED(BUTTONS_ID::BTN_PAGE) || (state==INIT)) {
     state +=1;
@@ -637,7 +637,7 @@ void ProcessGUI() {
     Display.clearBody();
     prt = PRINT_MODES::PRINT;
   }
-  
+
   switch(state) {
     case DISPLAY_VALUES:
       DisplayCurrentValues(prt);

@@ -30,7 +30,7 @@ void ReadButtons();
 
 extern int16_t adc_mv[MAX_ADC];
 extern int16_t chan_mv[MAX_CHANNELS];
-extern int16_t chan_ms[MAX_CHANNELS];
+extern int16_t chan_us[MAX_CHANNELS];
 extern int16_t chan_pct[MAX_CHANNELS];
 extern int nb_adc;
 

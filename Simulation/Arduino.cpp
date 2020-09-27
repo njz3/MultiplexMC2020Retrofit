@@ -12,7 +12,7 @@ uint16_t Simu_AdcRaw_Trim[4] =  { 512, 512, 512, 512 };
 
 extern int16_t adc_mv[];
 extern int16_t chan_mv[];
-extern int16_t chan_ms[];
+extern int16_t chan_us[];
 
 extern U8X8_SSD1327_MIDAS_128X128_HW_I2C u8x8;
 
@@ -80,7 +80,7 @@ void Simulation_HookEnd( void )
    printf(" adc: %04d %04d | chmv: %04d %04d | chus: %04d %04d \n",
           adc_mv[0],  adc_mv[6],
           chan_mv[0], chan_mv[6],
-          chan_ms[0], chan_ms[6]);
+          chan_us[0], chan_us[6]);
 
    printf("%s\n",u8x8.lines[0]);
    printf("%s\n",u8x8.lines[1]);

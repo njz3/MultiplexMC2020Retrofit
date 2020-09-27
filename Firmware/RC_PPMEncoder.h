@@ -22,7 +22,7 @@ enum PPM_STATE : uint8_t
 class PPMEncoder {
   public:
     static const uint16_t MAX_CHANNEL = 16;
-    
+
     static uint16_t PPM_INTERVAL_LENGTH_us;
     static uint16_t PPM_FRAME_LENGTH_us;
     static uint16_t MIN_us;
@@ -33,7 +33,7 @@ class PPMEncoder {
     void setNbChannel(uint8_t numChannels);
     void setChannel(uint8_t channel, uint16_t value);
     void setChannelPercent(uint8_t channel, uint8_t percent);
-    
+
     void begin(uint8_t pin);
     void begin(uint8_t pin, uint8_t ch);
 

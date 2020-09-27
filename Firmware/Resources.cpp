@@ -27,6 +27,6 @@ RSTR mStrValue5us   = "%5dus  ";
 RSTR mFooterChan    = "Channel %s    ";
 RSTR mFooterChanOpt = "Options %s    ";
 RSTR mFooterConfPPM = "Configure PPM ";
- 
+
 RSTR mSaveAll       = " SAVE ALL?";
 RSTR mSaving        = ">SAVING...";

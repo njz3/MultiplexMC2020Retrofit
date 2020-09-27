@@ -16,7 +16,7 @@ class CDisplay {
     char header[20];
     char footer[20];
 
-  public:   
+  public:
     void begin();
     //void loop();
 
@@ -24,7 +24,7 @@ class CDisplay {
 
     void refreshHeader(void);
     void refreshFooter(void);
-    
+
     void draw_bar(uint8_t c, uint8_t is_inverse);
     void draw_ascii_row(uint8_t r, int start);
     void drawString(int col, int row, char *str);
@@ -51,7 +51,7 @@ class CDisplay {
     //void setHeader(const String& str);
     void setFooter(const char* str) { strncpy(footer, str, sizeof(footer)-1); footer[16]=0; }
     //void setFooter(const String& str);
-    
+
 };
 
 extern CDisplay Display;

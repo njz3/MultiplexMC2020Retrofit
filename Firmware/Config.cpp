@@ -10,7 +10,7 @@ namespace Config {
 EEPROM_CONFIG ConfigFile;
 
 const char* ChannelNames[] = {
-  "Prof. ", 
+  "Prof. ",
   "Direc.",
   "Gaz   ",
   "Ailern",
@@ -27,7 +27,7 @@ int SaveConfigToEEPROM()
     return -1;
   }
   // Pointer to record
-  byte* pBlock = (byte*)&ConfigFile;  
+  byte* pBlock = (byte*)&ConfigFile;
   // Compute CRC8 to detect wrong eeprom data
   byte crc8 = CRC::crc8x(0, pBlock+1, sizeof(EEPROM_CONFIG)-1);
   // Update CRC in record
@@ -85,14 +85,14 @@ void ResetConfig()
       char buf[20];
       sprintf(buf, "C%2d   ", i+1);
       strncpy(ConfigFile.channels[i].name, buf, 9);
-    }    
-    
+    }
+
     ConfigFile.channels[i].rate = 2.0f;
     ConfigFile.channels[i].master_channel = i;
     ConfigFile.channels[i].min_us = 1000;
     ConfigFile.channels[i].max_us = 2200;
     ConfigFile.channels[i].trim_us = 0;
-    
+
     if (i<4) {
       ConfigFile.channels[i].min_mV = MIN_MANCHES_mV;
       ConfigFile.channels[i].max_mV = MAX_MANCHES_mV;
@@ -105,7 +105,7 @@ void ResetConfig()
       ConfigFile.channels[i].min_mV = MIN_AUX_mV;
       ConfigFile.channels[i].max_mV = MAX_AUX_mV;
       ConfigFile.channels[i].trim_mV = ((MIN_AUX_mV + MAX_AUX_mV)>>1);
-    } 
+    }
   }
 }
 
@@ -117,7 +117,7 @@ extern "C" char* sbrk(int incr);
 #else  // __ARM__
 extern char *__brkval;
 #endif  // __arm__
- 
+
 int freeMemory() {
 #ifdef SIMULATION_PC
   return 0;

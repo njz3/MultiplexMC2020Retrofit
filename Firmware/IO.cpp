@@ -75,7 +75,7 @@ void ReadButtons()
 
 int16_t adc_mv[MAX_ADC];
 int16_t chan_mv[MAX_CHANNELS];
-int16_t chan_ms[MAX_CHANNELS];
+int16_t chan_us[MAX_CHANNELS];
 int16_t chan_pct[MAX_CHANNELS];
 int nb_adc = 0;
 
@@ -183,22 +183,22 @@ void ProcessValues() {
     }
 
     // Convert channel mV to channel ms
-    chan_ms[i] = map(chan_mv[i], -full_mv, full_mv, Config::ConfigFile.channels[i].min_us, Config::ConfigFile.channels[i].max_us);
+    chan_us[i] = map(chan_mv[i], -full_mv, full_mv, Config::ConfigFile.channels[i].min_us, Config::ConfigFile.channels[i].max_us);
     // Add trim offset for pulse
-    chan_ms[i] += Config::ConfigFile.channels[i].trim_us;
+    chan_us[i] += Config::ConfigFile.channels[i].trim_us;
 
     // Saturation
-    if (chan_ms[i]<Config::ConfigFile.channels[i].min_us)
-      chan_ms[i] = Config::ConfigFile.channels[i].min_us;
-    if (chan_ms[i]>Config::ConfigFile.channels[i].max_us)
-      chan_ms[i] = Config::ConfigFile.channels[i].max_us;
+    if (chan_us[i]<Config::ConfigFile.channels[i].min_us)
+      chan_us[i] = Config::ConfigFile.channels[i].min_us;
+    if (chan_us[i]>Config::ConfigFile.channels[i].max_us)
+      chan_us[i] = Config::ConfigFile.channels[i].max_us;
 
 
     float us_to_pct = 100.0f/((float)(Config::ConfigFile.channels[i].max_us - Config::ConfigFile.channels[i].min_us));
-    chan_pct[i] = (int16_t)((chan_ms[i]-Config::ConfigFile.channels[i].min_us)*us_to_pct);
+    chan_pct[i] = (int16_t)((chan_us[i]-Config::ConfigFile.channels[i].min_us)*us_to_pct);
 
     // Set PPM value
-    ppmEncoder.setChannel(i, chan_ms[i]);
+    ppmEncoder.setChannel(i, chan_us[i]);
 
   }
 }

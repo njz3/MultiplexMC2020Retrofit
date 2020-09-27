@@ -5,7 +5,7 @@
 #include "Config.h"
 
 namespace CRC {
-  
+
 unsigned crc8x(unsigned crc, void const *mem, int len);
 
 }

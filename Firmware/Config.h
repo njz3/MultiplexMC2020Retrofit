@@ -63,11 +63,11 @@ enum COMSPEED {
 };
 
 // Fastest RS232 com (Leonard, Mega2560, Due)
-// - 115200 is the standard hihg speed baudrate, but the 
+// - 115200 is the standard hihg speed baudrate, but the
 //   Mega2560@16Mhz has some timing issues (2-3% frames errors)
 //   see here: http://ruemohr.org/~ircjunk/avr/baudcalc/avrbaudcalc-1.0.8.php?postbitrate=&postclock=16
 // - 250000, 5000000 or 1000000 is more stable on the Mega2560
-//   and other native USB like Leonardo or Due have no issues 
+//   and other native USB like Leonardo or Due have no issues
 //   whatever speed is choosen.
 // => Take maximum speed 1000000 to reduce transmission delays
 // Note: USB based com (Leonardo, Due) can go up to 2000000 (2Mbps)
@@ -127,11 +127,11 @@ typedef struct {
   int16_t max_pulse_us;
   // Number of channels (max is 16 for now)
   int16_t NBchannels;
-  
+
   // CHANNELS
   // Each individual channel configuration
   CHANNEL_CONFIG channels[MAX_CHANNELS];
-  
+
 } EEPROM_CONFIG;
 
 extern const char* ChannelNames[];

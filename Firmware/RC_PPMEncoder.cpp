@@ -61,7 +61,7 @@ void PPMEncoder::begin(uint8_t pin, uint8_t ch) {
   SET_PIN_LEVEL_SYNC();
 
   state = PPM_STATE::WAITING_START_FRAME;
-  
+
   for (uint8_t ch = 0; ch < numChannels; ch++) {
     setChannel(ch, PPMEncoder::MED_us); // init with arbitrary
   }
@@ -74,7 +74,7 @@ void PPMEncoder::begin(uint8_t pin, uint8_t ch) {
   // Setup for 16000000/8(prescaler) = 2MHz timer1 clock (so 1 tick equals 0.5us)
   TCCR1B = (1 << WGM12) | (1 << CS11); // CTC mode + Prescaler 8
   // enable timer1 compare interrupt
-  TIMSK1 = (1 << OCIE1A); 
+  TIMSK1 = (1 << OCIE1A);
 
   // Prepare timer1 values for first run
   TCCR1A = 0;
@@ -129,7 +129,7 @@ void PPMEncoder::setPinLevel(int level) {
 void PPMEncoder::interrupt() {
    // Clear counter to reset interrupt flag
    TCNT1 = 0;
-  
+
    switch(state)
    {
       case WAITING_START_FRAME:     // Should start with this
