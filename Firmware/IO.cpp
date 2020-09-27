@@ -45,7 +45,7 @@ void ReadButtons()
 {
   uint16_t buttons = 0;
   uint16_t buttonchanged = 0;
-  
+
   if (digitalRead(2)==0) buttons |= BUTTONS_ID::BTN_PLUS;
   if (digitalRead(3)==0) buttons |= BUTTONS_ID::BTN_MINUS;
   if (digitalRead(4)==0) buttons |= BUTTONS_ID::BTN_NEXT;
@@ -108,16 +108,16 @@ void ReadValues() {
   for(int i=0; i<nb_adc; i++) {
     adc_mv[i] = (int)((float)adc_vals[i]*SCALE_mV_per_ADC);
   }
-  
+
 }
 
 void ProcessValues() {
-  
+
   bool dual_rate = IS_PRESSED(BTN_DUAL_RATE);
   bool coupling  = IS_PRESSED(BTN_COUPLING);
-  
+
   for(int i=0; i<Config::ConfigFile.NBchannels; i++) {
-  
+
     if (coupling) {
         // Get value from master channel adc
         int master = Config::ConfigFile.channels[i].master_channel;
@@ -132,7 +132,7 @@ void ProcessValues() {
       chan_mv[i] = Config::ConfigFile.channels[i].min_mV;
     if (chan_mv[i]>Config::ConfigFile.channels[i].max_mV)
       chan_mv[i] = Config::ConfigFile.channels[i].max_mV;
-  
+
     // Add trim offset for voltage to center it in [-min/max]
     chan_mv[i] -= Config::ConfigFile.channels[i].trim_mV;
 
@@ -148,7 +148,7 @@ void ProcessValues() {
   }
 
   for(int i=0; i<Config::ConfigFile.NBchannels; i++) {
-  
+
     // For mega 2560, add trim offset from A8/A9/A10 for channel 1/2/4
 #if defined(MC2020_MEGA)
    switch(i) {
@@ -167,29 +167,33 @@ void ProcessValues() {
    }
 #endif
 
-    int fullmax_mv = Config::ConfigFile.channels[i].max_mV - Config::ConfigFile.channels[i].trim_mV;
-    int fullmin_mv = Config::ConfigFile.channels[i].min_mV - Config::ConfigFile.channels[i].trim_mV;
-    int full_mv = max(abs(fullmax_mv), abs(fullmin_mv));
+    int16_t fullmax_mv = Config::ConfigFile.channels[i].max_mV - Config::ConfigFile.channels[i].trim_mV;
+    int16_t fullmin_mv = Config::ConfigFile.channels[i].min_mV - Config::ConfigFile.channels[i].trim_mV;
+    float full_mv = max(abs(fullmax_mv), abs(fullmin_mv));
 
-    // Power law ? Amplify small difference to center
+    // Power law ? // Power law ? reduce sensitivity near stick center
     if ((Config::ConfigFile.channels[i].options & CONFIG_CHANNEL_OPT_POWERLAW)!=0) {
-      float normalized = chan_mv[i] / full_mv;
-      float corrected = pow(normalized, 2.0f);
-      chan_mv[i] =(int)(corrected * full_mv);
+      float normalized = (float)chan_mv[i] / full_mv;
+      float corrected;
+      if( normalized>0 )
+        corrected = pow(normalized, 2.0f);
+      else
+        corrected = -1.0f*pow(-1.0f*normalized, 2.0f);
+      chan_mv[i] =(int16_t)(corrected * full_mv);
     }
 
     // Convert channel mV to channel ms
     chan_ms[i] = map(chan_mv[i], -full_mv, full_mv, Config::ConfigFile.channels[i].min_us, Config::ConfigFile.channels[i].max_us);
     // Add trim offset for pulse
     chan_ms[i] += Config::ConfigFile.channels[i].trim_us;
-    
+
     // Saturation
     if (chan_ms[i]<Config::ConfigFile.channels[i].min_us)
       chan_ms[i] = Config::ConfigFile.channels[i].min_us;
     if (chan_ms[i]>Config::ConfigFile.channels[i].max_us)
       chan_ms[i] = Config::ConfigFile.channels[i].max_us;
-    
-    
+
+
     float us_to_pct = 100.0f/((float)(Config::ConfigFile.channels[i].max_us - Config::ConfigFile.channels[i].min_us));
     chan_pct[i] = (int16_t)((chan_ms[i]-Config::ConfigFile.channels[i].min_us)*us_to_pct);
 
@@ -200,4 +204,4 @@ void ProcessValues() {
 }
 
 
-  
+
