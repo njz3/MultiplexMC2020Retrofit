@@ -202,7 +202,7 @@ void MakeDisplayCurrentValuesPage()
   Display.refreshFooter();
   
   Body.Delete();
-  for (int i=0; i<ScreenBody::MAX_BODY_LINES; i++) {
+  for (byte i=0; i<ScreenBody::MAX_BODY_LINES; i++) {
     int idx = (currentDisplayValuesPage*7) + i;
     if (idx<Config::ConfigFile.NBchannels) {
       switch(currentDisplayValuesMode) {
@@ -257,7 +257,7 @@ void DisplayCurrentValues(PRINT_MODES print_mode) {
   }
 }
 
-int currentDisplayChannelPage = 0;
+int16_t currentDisplayChannelPage = 0;
 
 void MakeDisplayChannelPage()
 {

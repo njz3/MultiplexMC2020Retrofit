@@ -1,0 +1,4 @@
+/Simulation/bin
+/Simulation/obj
+/Simulation/*.depend
+/Firmware/*.bak

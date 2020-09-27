@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Simulation" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/Simulation" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-DARDUINO_AVR_MEGA2560" />
+					<Add option="-DARDUINO=100" />
+					<Add option="-DSIMULATION_PC" />
+					<Add directory="../Simulation" />
+					<Add directory="../Firmware" />
+				</Compiler>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+		</Compiler>
+		<Unit filename="../Firmware/CRC.cpp" />
+		<Unit filename="../Firmware/CRC.h" />
+		<Unit filename="../Firmware/Channel.cpp" />
+		<Unit filename="../Firmware/Channel.h" />
+		<Unit filename="../Firmware/Config.cpp" />
+		<Unit filename="../Firmware/Config.h" />
+		<Unit filename="../Firmware/Display.cpp" />
+		<Unit filename="../Firmware/Display.h" />
+		<Unit filename="../Firmware/GUI.cpp" />
+		<Unit filename="../Firmware/GUI.h" />
+		<Unit filename="../Firmware/IO.cpp" />
+		<Unit filename="../Firmware/IO.h" />
+		<Unit filename="../Firmware/RC_PPMEncoder.cpp" />
+		<Unit filename="../Firmware/RC_PPMEncoder.h" />
+		<Unit filename="../Firmware/Resources.cpp" />
+		<Unit filename="../Firmware/Resources.h" />
+		<Unit filename="Arduino.cpp" />
+		<Unit filename="Arduino.h" />
+		<Unit filename="EEPROM.cpp" />
+		<Unit filename="EEPROM.h" />
+		<Unit filename="SimulationMain.cpp" />
+		<Unit filename="U8g2lib.h" />
+		<Unit filename="U8x8lib.h" />
+		<Extensions>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

@@ -70,6 +70,7 @@ void PPMEncoder::begin(uint8_t pin, uint8_t ch) {
   Task_Adc2Ppm();
   /*******************/
 
+#ifndef SIMULATION_PC
   // Setup for 16000000/8(prescaler) = 2MHz timer1 clock (so 1 tick equals 0.5us)
   TCCR1B = (1 << WGM12) | (1 << CS11); // CTC mode + Prescaler 8
   // enable timer1 compare interrupt
@@ -79,7 +80,7 @@ void PPMEncoder::begin(uint8_t pin, uint8_t ch) {
   TCCR1A = 0;
   TCNT1 = 0;
   OCR1A = 200*2; /* program the 1st interrupt 200us later */
-  
+#endif // SIMULATION_PC
   // Enable interrupts
   sei();
 }
@@ -121,9 +122,10 @@ void PPMEncoder::setPinLevel(int level) {
 #else
   /* Caution: digitalWrite runtime might be not the same for Nano and Mega !! */
   digitalWrite(outputPin, level);
-#endif  
+#endif //FAST_WRITE_D10_MEGA2560
 }
 
+#ifndef SIMULATION_PC
 void PPMEncoder::interrupt() {
    // Clear counter to reset interrupt flag
    TCNT1 = 0;
@@ -180,3 +182,4 @@ void PPMEncoder::interrupt() {
 ISR(TIMER1_COMPA_vect) {
    ppmEncoder.interrupt();
 }
+#endif // SIMULATION_PC

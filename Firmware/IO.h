@@ -28,10 +28,10 @@ void ReadButtons();
 #define IS_PRESSED(btn) ((ButtonsPressed & (btn))!=0)
 #define IS_RELEASED(btn) ((ButtonsReleased & (btn))!=0)
 
-extern int adc_mv[MAX_ADC];
-extern int chan_mv[MAX_CHANNELS];
-extern int chan_ms[MAX_CHANNELS];
-extern int chan_pct[MAX_CHANNELS];
+extern int16_t adc_mv[MAX_ADC];
+extern int16_t chan_mv[MAX_CHANNELS];
+extern int16_t chan_ms[MAX_CHANNELS];
+extern int16_t chan_pct[MAX_CHANNELS];
 extern int nb_adc;
 
 void ReadValues();

@@ -119,6 +119,9 @@ extern char *__brkval;
 #endif  // __arm__
  
 int freeMemory() {
+#ifdef SIMULATION_PC
+  return 0;
+#else
   char top;
 #ifdef __arm__
   return &top - reinterpret_cast<char*>(sbrk(0));
@@ -127,4 +130,5 @@ int freeMemory() {
 #else  // __arm__
   return __brkval ? &top - __brkval : &top - __malloc_heap_start;
 #endif  // __arm__
+#endif // SIMULATION_PC
 }
