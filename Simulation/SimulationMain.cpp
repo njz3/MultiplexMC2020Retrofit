@@ -13,8 +13,9 @@ extern void Simulation_HookEnd(void);
 
 void Task_Adc2Ppm(void)
 {
-   ReadValues();
-   ProcessValues();
+   IO_InputsProcess();
+   IO_MixersProcess();
+   IO_ServosProcess();
 }
 
 #if 0 //Only for reference
@@ -44,7 +45,7 @@ int main()
 
       Task_Adc2Ppm();
 
-      ReadButtons();
+      IO_ReadButtons();
       ProcessGUI();
 
       Simulation_HookEnd();

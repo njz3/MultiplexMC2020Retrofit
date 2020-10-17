@@ -196,6 +196,7 @@ ScreenBody Body;
 
 void MakeDisplayCurrentValuesPage()
 {
+#if 0 // TODO screen
   char buff[20];
   sprintf(buff, mFooterValues, currentDisplayValuesPage);
   Display.setFooter(buff);
@@ -222,6 +223,7 @@ void MakeDisplayCurrentValuesPage()
       }
     }
   }
+#endif
 }
 
 void DisplayCurrentValues(PRINT_MODES print_mode) {
@@ -261,6 +263,7 @@ int16_t currentDisplayChannelPage = 0;
 
 void MakeDisplayChannelPage()
 {
+#if 0 // TODO screen
   char buff[20];
   sprintf(buff, mFooterChan, Config::ConfigFile.channels[currentDisplayChannelPage].name);
   Display.setFooter(buff);
@@ -289,6 +292,7 @@ void MakeDisplayChannelPage()
   Body.Lines[5] = (display_line*)new display_line_int(5, " Min.T=", mStrValue4us, &Config::ConfigFile.channels[currentDisplayChannelPage].min_us);
   Body.Lines[6] = (display_line*)new display_line_int(6, " Max.T=", mStrValue4us, &Config::ConfigFile.channels[currentDisplayChannelPage].max_us);
   //Body.Lines[6] = (display_line*)new display_line_int(6, " TrimT=", mStrValue4us, &Config::ConfigFile.channels[currentDisplayChannelPage].trim_us);
+#endif // 0
 }
 
 void DisplayChannels(PRINT_MODES print_mode) {

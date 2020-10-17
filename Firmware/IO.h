@@ -20,19 +20,14 @@ extern uint16_t ButtonsPushed;
 extern uint16_t ButtonsReleased;
 extern uint16_t LastButtonsPressed;
 
-void InitIOs();
+void IO_InitPins();
 
-void ReadButtons();
+void IO_ReadButtons();
 
 #define IS_PUSHED(btn) ((ButtonsPushed & (btn))!=0)
 #define IS_PRESSED(btn) ((ButtonsPressed & (btn))!=0)
 #define IS_RELEASED(btn) ((ButtonsReleased & (btn))!=0)
 
-extern int16_t adc_mv[MAX_ADC];
-extern int16_t chan_mv[MAX_CHANNELS];
-extern int16_t chan_us[MAX_CHANNELS];
-extern int16_t chan_pct[MAX_CHANNELS];
-extern int nb_adc;
-
-void ReadValues();
-void ProcessValues();
+void IO_InputsProcess(void);
+void IO_MixersProcess(void);
+void IO_ServosProcess(void);
