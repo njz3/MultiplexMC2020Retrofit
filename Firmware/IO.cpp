@@ -21,6 +21,7 @@ typedef struct {
 #define PIN_NA      (0xFF)
 
 input_tst Inputs_pst[NB_INPUTS] = {  // pst = pointer to structure
+         /* pin,  raw, mV, min_mV, med_mV, max_mV, value*/
   /*0*/  { PIN_NA, 0,  0,     0,      0,      0,  +1.0f},  /**< constant                               */
   /*1*/  { A3,     0,  0,  1000,   2500,   4000,   0.0f},  /**< Stick Right Horizontal (Ailerons)      */
   /*2*/  { A0,     0,  0,  1000,   2500,   4000,   0.0f},  /**< Stick Left  Vertical   (Profondeur)    */
@@ -99,9 +100,9 @@ uint16_t   Servos_us_pui16[NB_SERVOS];
 servos_tst Servos_pst[NB_SERVOS]={
       /*   out,    trim_idx,   trim_coef,  min_us, med_us, max_us */
  /*0*/   { 1,      5,           25,        1100,   1600,   2100},  /* Ailerons 1 */
- /*1*/   { 1,      6,           25,        1100,   1600,   2100},  /* Profondeur */
- /*2*/   { 1,      7,           25,        1100,   1600,   2100},  /* Derive     */
- /*3*/   { 1,      0,            0,        1100,   1600,   2100},  /* Gaz        */
+ /*1*/   { 2,      6,           25,        1100,   1600,   2100},  /* Profondeur */
+ /*2*/   { 3,      7,           25,        1100,   1600,   2100},  /* Derive     */
+ /*3*/   { 4,      0,            0,        1100,   1600,   2100},  /* Gaz        */
  /*4*/   { 1,      5,           25,        1100,   1600,   2100},  /* Ailerons 2 */
  /*5*/   { 0,      0,            0,        1100,   1600,   2100},  /* na */
  /*6*/   { 1,      1,           25,        1100,   1600,   2100},  /* na */
