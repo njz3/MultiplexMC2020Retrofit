@@ -101,15 +101,15 @@ struct display_line
     }
   };
   virtual ~display_line(){};
-  virtual void print() const {
+  virtual void print_fixed() const {
     if (fixed!=NULL) {
-      Display.setCursor(0, (row<<1)+1);
+      Display.setCursor(0, 2*row+1);
       Display.print(fixed);
-      refresh();
+      refresh_notfixed();
     }
   };
-  virtual void refresh() const {
-    Display.setCursor(offset, (row<<1)+1);
+  virtual void refresh_notfixed() const {
+    Display.setCursor(offset, 2*row+1);
   };
 };
 
@@ -122,9 +122,9 @@ struct display_line_int : public display_line
   display_line_int(const byte row, const char *fxd, const char *fmt, int16_t *pval): display_line(row, fxd), format(fmt), pval(pval) { };
   virtual ~display_line_int(){ };
 
-  virtual void refresh() const override  {
+  virtual void refresh_notfixed() const override  {
     if (format!=NULL) {
-      display_line::refresh();
+      display_line::refresh_notfixed();
       char buf[20];
       sprintf(buf, format, *pval);
       Display.print(buf);
@@ -141,9 +141,9 @@ struct display_line_str : public display_line
   display_line_str(const byte row, const char *fxd, const char *fmt, const char *strg): display_line(row, fxd), format(fmt), str(strg) { };
   virtual ~display_line_str(){ };
 
-  virtual void refresh() const override {
+  virtual void refresh_notfixed() const override {
     if (format!=NULL) {
-      display_line::refresh();
+      display_line::refresh_notfixed();
       char buf[20];
       sprintf(buf, format, str);
       Display.print(buf);
@@ -167,26 +167,26 @@ struct ScreenBody
   };
 
   void SetCursor(byte col, byte row) {
-    Display.setCursor(col, (row<<1)+1);
+    Display.setCursor(col, 2*row+1);
   };
 
   void Print(const char *str) {
     Display.print(str);
   };
 
-  void Print() {
+  void PrintAllFixed() {
     for(int row=0; row<MAX_BODY_LINES; row++) {
       if (Lines[row]!=NULL)
-        Lines[row]->print();
+        Lines[row]->print_fixed();
       else
-        Display.clearLine((row<<1)+1);
+        Display.clearLine(2*row+1);
     }
   };
 
-  void Refresh() {
+  void RefreshAllNotFixed() {
     for(int row=0; row<MAX_BODY_LINES; row++) {
       if (Lines[row]!=NULL) {
-        Lines[row]->refresh();
+        Lines[row]->refresh_notfixed();
       }
     }
   };
@@ -253,9 +253,9 @@ void DisplayCurrentValues(PRINT_MODES print_mode) {
 
   if (print_mode==PRINT_MODES::PRINT) {
     MakeDisplayCurrentValuesPage();
-    Body.Print();
+    Body.PrintAllFixed();
   } else {
-    Body.Refresh();
+    Body.RefreshAllNotFixed();
   }
 }
 
@@ -311,9 +311,9 @@ void DisplayChannels(PRINT_MODES print_mode) {
 
   if (print_mode==PRINT_MODES::PRINT) {
     MakeDisplayChannelPage();
-    Body.Print();
+    Body.PrintAllFixed();
   } else {
-    Body.Refresh();
+    Body.RefreshAllNotFixed();
   }
 
   int idx = currentDisplayChannelPage;
@@ -408,7 +408,7 @@ void DisplayChannels(PRINT_MODES print_mode) {
   }
   if (edited) {
     MakeDisplayChannelPage();
-    Body.Print();
+    Body.PrintAllFixed();
   }
 }
 
@@ -449,35 +449,35 @@ void DisplayChannelsOptions(PRINT_MODES print_mode) {
   int idx = currentDisplayChannelPage;
   if (print_mode==PRINT_MODES::PRINT) {
     MakeDisplayChannelsOptionsPage();
-    Body.Print();
+    Body.PrintAllFixed();
   } else {
-    Body.Refresh();
+    Body.RefreshAllNotFixed();
 
-    Body.Lines[1]->refresh();
+    Body.Lines[1]->refresh_notfixed();
     if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_INVERTED)!=0)
       Display.print("Invert");
     else
       Display.print("Normal");
 
-    Body.Lines[2]->refresh();
+    Body.Lines[2]->refresh_notfixed();
     if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_COUPLING)!=0)
       Display.print("Yes");
     else
       Display.print("No ");
 
-    Body.Lines[3]->refresh();
+    Body.Lines[3]->refresh_notfixed();
     if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_DUALRATE)!=0)
       Display.println("Yes");
     else
       Display.println("No ");
 
-    Body.Lines[4]->refresh();
+    Body.Lines[4]->refresh_notfixed();
     if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_POWERLAW)!=0)
       Display.println("Power ");
     else
       Display.println("Linear");
 
-    Body.Lines[6]->refresh();
+    Body.Lines[6]->refresh_notfixed();
     Display.print((int)(Config::ConfigFile.channels[idx].rate*1000.0));
   }
 
@@ -529,7 +529,7 @@ void DisplayChannelsOptions(PRINT_MODES print_mode) {
 
   if (edited) {
     MakeDisplayChannelsOptionsPage();
-    Body.Print();
+    Body.PrintAllFixed();
   }
 }
 
@@ -560,9 +560,9 @@ void DisplayPPM(PRINT_MODES print_mode) {
 
   if (print_mode==PRINT_MODES::PRINT) {
     MakePPMPage();
-    Body.Print();
+    Body.PrintAllFixed();
   } else {
-    Body.Refresh();
+    Body.RefreshAllNotFixed();
   }
 
   Body.SetCursor(0, currentEditLine);
@@ -601,7 +601,7 @@ void DisplayPPM(PRINT_MODES print_mode) {
         Body.SetCursor(0, currentEditLine);
         Body.Print(mSaving);
         Config::SaveConfigToEEPROM();
-        Body.Print();
+        Body.PrintAllFixed();
       }
     }
     break;
