@@ -3,45 +3,22 @@
 #include "RC_PPMEncoder.h"
 
 
-typedef struct {
-   uint8_t  pin_ui8;
-   uint16_t adc_raw_ui16;
-   uint16_t adc_mV_ui16;
-   uint16_t min_mV_ui16;
-   uint16_t med_mV_ui16;
-   uint16_t max_mV_ui16;
-   float    val_ft;         /**< [ -1.0f : 1.0f ] */
-}input_tst; // tst = type struct
-
-#define NB_CST       (1)
-#define NB_STICKS    (4)
-#define NB_TRIMS     (4)
-#define NB_AUXS      (2)
-#define NB_INPUTS    (NB_CST+NB_STICKS+NB_TRIMS+NB_AUXS)
-#define PIN_NA      (0xFF)
-
 input_tst Inputs_pst[NB_INPUTS] = {  // pst = pointer to structure
          /* pin,  raw, mV, min_mV, med_mV, max_mV, value*/
-  /*0*/  { PIN_NA, 0,  0,     0,      0,      0,  +1.0f},  /**< constant                               */
-  /*1*/  { A3,     0,  0,  1000,   2500,   4000,   0.0f},  /**< Stick Right Horizontal (Ailerons)      */
-  /*2*/  { A0,     0,  0,  1000,   2500,   4000,   0.0f},  /**< Stick Left  Vertical   (Profondeur)    */
-  /*3*/  { A1,     0,  0,  1000,   2500,   4000,   0.0f},  /**< Stick Left  Horizontal (Derive)        */
-  /*4*/  { A2,     0,  0,  1000,   2500,   4000,   0.0f},  /**< Stick Right Vertical   (Gaz)           */
-  /*5*/  { A6,     0,  0,  1000,   2500,   4000,   0.0f},  /**< Trim Right Horizontal (Ailerons)       */
-  /*6*/  { A7,     0,  0,  1000,   2500,   4000,   0.0f},  /**< Trim Left  Vertical   (Profondeur)     */
-  /*7*/  { PIN_NA, 0,  0,  1000,   2500,   4000,   0.0f},  /**< Trim Left  Horizontal (Derive)         */
-  /*8*/  { PIN_NA, 0,  0,  1000,   2500,   4000,   0.0f},  /**< Trim Right Vertical   (Gaz)            */
-  /*9*/  { PIN_NA, 0,  0,  1000,   2500,   4000,   0.0f},  /**< Aux 1  */
+  /*0*/  { PIN_NA, 0,  0,    01,     02,     03,  +0.8f},  /**< constant                               */
+  /*1*/  { A3,     0,  0,  1001,   2500,   4000,  -0.1f},  /**< Stick Right Horizontal (Ailerons)      */
+  /*2*/  { A0,     0,  0,  1002,   2500,   4000,  -0.2f},  /**< Stick Left  Vertical   (Profondeur)    */
+  /*3*/  { A1,     0,  0,  1003,   2500,   4000,   0.0f},  /**< Stick Left  Horizontal (Derive)        */
+  /*4*/  { A2,     0,  0,  1004,   2500,   4000,   0.0f},  /**< Stick Right Vertical   (Gaz)           */
+  /*5*/  { A6,     0,  0,  1005,   2500,   4000,   0.0f},  /**< Trim Right Horizontal (Ailerons)       */
+  /*6*/  { A7,     0,  0,  1006,   2500,   4000,   0.0f},  /**< Trim Left  Vertical   (Profondeur)     */
+  /*7*/  { PIN_NA, 0,  0,  1007,   2500,   4000,   0.0f},  /**< Trim Left  Horizontal (Derive)         */
+  /*8*/  { PIN_NA, 0,  0,  1008,   2500,   4000,   0.0f},  /**< Trim Right Vertical   (Gaz)            */
+  /*9*/  { PIN_NA, 0,  0,  1009,   2500,   4000,   0.0f},  /**< Aux 1  */
   /*10*/ { PIN_NA, 0,  0,  1000,   2500,   4000,   0.0f}   /**< Aux 2  */
 };
 
-typedef struct {
-   uint8_t  out_idx_ui8;
-   uint8_t  in_idx_ui8;
-   uint8_t  curve_ui8;
-   sint8_t  coef_si8;
-   uint8_t  valid_ui8;
-}mixers_tst; // tst = type struct
+
 
 enum{
    crv_normal_em=0,
@@ -66,7 +43,7 @@ enum{
 };
 
 
-#define NB_MIXERS   (12)
+
 mixers_tst Mixers_pst[NB_MIXERS]={
         /*   out,    input,  curve,          coef,   valid */
  /*0*/  {    0,      0,      crv_normal_em, +100,    val_always_em}, /* dummy        */
@@ -83,19 +60,10 @@ mixers_tst Mixers_pst[NB_MIXERS]={
  /*11*/ {   11,      0,      crv_normal_em, +100,    val_always_em}, /* dummy        */
 };
 
-#define NB_OUTPUTS     (12)
+
 float Outputs_pft[NB_OUTPUTS];
 
-typedef struct {
-   uint8_t  out_idx_ui8;
-   uint8_t  trim_idx_ui8;
-   sint8_t  trim_coef_si8;
-   uint16_t min_us_ui16;
-   uint16_t med_us_ui16;
-   uint16_t max_us_ui16;
-}servos_tst; // tst = type struct
 
-#define NB_SERVOS   (7)
 uint16_t   Servos_us_pui16[NB_SERVOS];
 servos_tst Servos_pst[NB_SERVOS]={
       /*   out,    trim_idx,   trim_coef,  min_us, med_us, max_us */
@@ -173,6 +141,7 @@ void IO_InputsProcess(void)
 {
    float l_fullx_ft;
    float l_dx_ft;
+   uint16_t l_adc_mV_ui16;
    for(int i=0; i<NB_INPUTS; i++)
    {
       if( Inputs_pst[i].pin_ui8 != PIN_NA )
@@ -181,17 +150,15 @@ void IO_InputsProcess(void)
          Inputs_pst[i].adc_mV_ui16  = ((float)Inputs_pst[i].adc_raw_ui16*SCALE_mV_per_ADC);
          if( Inputs_pst[i].adc_mV_ui16 < Inputs_pst[i].med_mV_ui16 )
          {
-            if(Inputs_pst[i].adc_mV_ui16 < Inputs_pst[i].min_mV_ui16) // limit to min
-               Inputs_pst[i].adc_mV_ui16 = Inputs_pst[i].min_mV_ui16;
-            l_dx_ft    = Inputs_pst[i].adc_mV_ui16 - Inputs_pst[i].min_mV_ui16; // always positive
+            l_adc_mV_ui16 = max( Inputs_pst[i].min_mV_ui16 , Inputs_pst[i].adc_mV_ui16 ); // limit to min
+            l_dx_ft    = l_adc_mV_ui16 - Inputs_pst[i].min_mV_ui16; // always positive
             l_fullx_ft = Inputs_pst[i].med_mV_ui16 - Inputs_pst[i].min_mV_ui16; // always positive
             Inputs_pst[i].val_ft = (l_dx_ft/l_fullx_ft) + (-1.0f);
          }
          else //  Inputs_pst[i].adc_mV_ui16 >= Inputs_pst[i].med_mV_ui16 )
          {
-            if(Inputs_pst[i].adc_mV_ui16 > Inputs_pst[i].max_mV_ui16) // limit to max
-               Inputs_pst[i].adc_mV_ui16 = Inputs_pst[i].max_mV_ui16;
-            l_dx_ft    = Inputs_pst[i].adc_mV_ui16 - Inputs_pst[i].med_mV_ui16; // always positive
+            l_adc_mV_ui16 = min(Inputs_pst[i].adc_mV_ui16, Inputs_pst[i].max_mV_ui16);  // limit to max
+            l_dx_ft    = l_adc_mV_ui16 - Inputs_pst[i].med_mV_ui16; // always positive
             l_fullx_ft = Inputs_pst[i].max_mV_ui16 - Inputs_pst[i].med_mV_ui16; // always positive
             Inputs_pst[i].val_ft = (l_dx_ft/l_fullx_ft) + (0.0f);
          }
@@ -256,7 +223,7 @@ void IO_ServosProcess(void)
 {
    float l_Out_ft;
    float l_Trim_ft;
-   sint16_t l_Trim_us_si16;
+   int16_t l_Trim_us_si16;
    uint16_t l_Med_us_ui16;
    uint16_t l_Servo_us_ui16;
    for(int i=0; i<NB_SERVOS; i++)

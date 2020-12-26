@@ -23,7 +23,7 @@ void setup() {
   Serial.println(mConfigureIOs);
   Display.println(mConfigureIOs);
   
-  InitIOs();
+  IO_InitPins();
 
   int resetPin = digitalRead(12);
   if (resetPin==0) {
@@ -70,8 +70,9 @@ void setup() {
 
 
 void loop() {
-  ReadButtons();
-  ProcessGUI();
+   Task_Adc2Ppm();
+   IO_ReadButtons();
+   ProcessGUI();
 }
 
 
@@ -80,9 +81,10 @@ void loop() {
  * Normally executed every 20 ms.
  * Done once before to send the ppm sequence7
  */
-
 void Task_Adc2Ppm(void)
 {
-   ReadValues();
-   ProcessValues();
+   IO_InputsProcess();
+   IO_MixersProcess();
+   IO_ServosProcess();
 }
+
