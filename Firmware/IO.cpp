@@ -20,44 +20,26 @@ input_tst Inputs_pst[NB_INPUTS] = {  // pst = pointer to structure
 
 
 
-enum{
-   crv_normal_em=0,
-   crv_expo1_em,
-   crv_expo2_em,
-   crv_expo3_em,
-   crv_expo4_em,
-   crv_expo5_em,
-   crv_perso1_em,
-   crv_perso2_em,
-   crv_perso3_em,
-   crv_perso4_em
-};
 
-enum{
-   val_never_em=0,
-   val_always_em,
-   crv_bp1_em,
-   crv_bp2_em,
-   crv_bp3_em,
-   crv_bp4_em
-};
+
+
 
 
 
 mixers_tst Mixers_pst[NB_MIXERS]={
         /*   out,    input,  curve,          coef,   valid */
- /*0*/  {    0,      0,      crv_normal_em, +100,    val_always_em}, /* dummy        */
- /*1*/  {    1,      1,      crv_expo3_em,  +100,    val_always_em}, /* Ailerons     */
- /*2*/  {    2,      2,      crv_expo3_em,  +100,    val_always_em}, /* Profondeur   */
- /*3*/  {    3,      3,      crv_expo3_em,  +100,    val_always_em}, /* Derive       */
- /*4*/  {    4,      4,      crv_normal_em, +100,    val_always_em}, /* Gaz          */
- /*5*/  {    5,      0,      crv_normal_em, +100,    val_always_em}, /* dummy        */
- /*6*/  {    6,      0,      crv_normal_em, +100,    val_always_em}, /* dummy        */
- /*7*/  {    7,      0,      crv_normal_em, +100,    val_always_em}, /* dummy        */
- /*8*/  {    8,      0,      crv_normal_em, +100,    val_always_em}, /* dummy        */
- /*9*/  {    9,      0,      crv_normal_em, +100,    val_always_em}, /* dummy        */
- /*10*/ {   10,      0,      crv_normal_em, +100,    val_always_em}, /* dummy        */
- /*11*/ {   11,      0,      crv_normal_em, +100,    val_always_em}, /* dummy        */
+ /*0*/  {    0,      0,      curve_normal_em, +100,    validity_always_em}, /* dummy        */
+ /*1*/  {    1,      1,      curve_expo3_em,  +100,    validity_always_em}, /* Ailerons     */
+ /*2*/  {    2,      2,      curve_expo3_em,  +100,    validity_always_em}, /* Profondeur   */
+ /*3*/  {    3,      3,      curve_expo3_em,  +100,    validity_always_em}, /* Derive       */
+ /*4*/  {    4,      4,      curve_normal_em, +100,    validity_always_em}, /* Gaz          */
+ /*5*/  {    5,      0,      curve_normal_em, +100,    validity_always_em}, /* dummy        */
+ /*6*/  {    6,      0,      curve_normal_em, +100,    validity_always_em}, /* dummy        */
+ /*7*/  {    7,      0,      curve_normal_em, +100,    validity_always_em}, /* dummy        */
+ /*8*/  {    8,      0,      curve_normal_em, +100,    validity_always_em}, /* dummy        */
+ /*9*/  {    9,      0,      curve_normal_em, +100,    validity_always_em}, /* dummy        */
+ /*10*/ {   10,      0,      curve_normal_em, +100,    validity_always_em}, /* dummy        */
+ /*11*/ {   11,      0,      curve_normal_em, +100,    validity_always_em}, /* dummy        */
 };
 
 
@@ -177,7 +159,7 @@ void IO_MixersProcess(void)
 
    for(int i=0; i<NB_MIXERS; i++)
    {
-      if( Mixers_pst[i].valid_ui8 == val_never_em ) /* TODO, only the never case is handled for now */
+      if( Mixers_pst[i].valid_ui8 == validity_never_em ) /* TODO, only the never case is handled for now */
       {
          break; // skip
       }
@@ -192,17 +174,17 @@ void IO_MixersProcess(void)
       // apply curve
       switch(Mixers_pst[i].curve_ui8)
       {
-         case crv_normal_em: l_Out_ft = l_In_ft;                            break;
-         case crv_expo1_em:  l_Out_ft =  m_IO_ExpoCurve( l_In_ft , 1.50f ); break;
-         case crv_expo2_em:  l_Out_ft =  m_IO_ExpoCurve( l_In_ft , 1.75f ); break;
-         case crv_expo3_em:  l_Out_ft =  m_IO_ExpoCurve( l_In_ft , 2.00f ); break;
-         case crv_expo4_em:  l_Out_ft =  m_IO_ExpoCurve( l_In_ft , 2.40f ); break;
-         case crv_expo5_em:  l_Out_ft =  m_IO_ExpoCurve( l_In_ft , 3.00f ); break;
-         case crv_perso1_em: l_Out_ft = l_In_ft;                            break;
-         case crv_perso2_em: l_Out_ft = l_In_ft;                            break;
-         case crv_perso3_em: l_Out_ft = l_In_ft;                            break;
-         case crv_perso4_em: l_Out_ft = l_In_ft;                            break;
-         default:            l_Out_ft = l_In_ft;                            break;
+         case curve_normal_em: l_Out_ft = l_In_ft;                            break;
+         case curve_expo1_em:  l_Out_ft =  m_IO_ExpoCurve( l_In_ft , 1.50f ); break;
+         case curve_expo2_em:  l_Out_ft =  m_IO_ExpoCurve( l_In_ft , 1.75f ); break;
+         case curve_expo3_em:  l_Out_ft =  m_IO_ExpoCurve( l_In_ft , 2.00f ); break;
+         case curve_expo4_em:  l_Out_ft =  m_IO_ExpoCurve( l_In_ft , 2.40f ); break;
+         case curve_expo5_em:  l_Out_ft =  m_IO_ExpoCurve( l_In_ft , 3.00f ); break;
+         case curve_perso1_em: l_Out_ft = l_In_ft;                            break;
+         case curve_perso2_em: l_Out_ft = l_In_ft;                            break;
+         case curve_perso3_em: l_Out_ft = l_In_ft;                            break;
+         case curve_perso4_em: l_Out_ft = l_In_ft;                            break;
+         default:              l_Out_ft = l_In_ft;                            break;
       }
 
       // apply coef

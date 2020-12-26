@@ -14,6 +14,30 @@
 #define NB_OUTPUTS  (12)
 #define NB_SERVOS   (7)
 
+enum{
+   curve_normal_em=0,
+   curve_expo1_em,
+   curve_expo2_em,
+   curve_expo3_em,
+   curve_expo4_em,
+   curve_expo5_em,
+   curve_perso1_em,
+   curve_perso2_em,
+   curve_perso3_em,
+   curve_perso4_em,
+   curve_max_em
+};
+
+enum{
+   validity_never_em=0,
+   validity_always_em,
+   validity_bp1_em,
+   validity_bp2_em,
+   validity_bp3_em,
+   validity_bp4_em,
+   validity_max_em
+};
+
 enum BUTTONS_ID : uint16_t
 {
   BTN_PLUS  = (1<<0),
@@ -54,6 +78,7 @@ typedef struct {
 }servos_tst; // tst = type struct
 
 extern input_tst Inputs_pst[NB_INPUTS];
+extern mixers_tst Mixers_pst[NB_MIXERS];
 extern uint16_t   Servos_us_pui16[NB_SERVOS];
 extern servos_tst Servos_pst[NB_SERVOS];
 

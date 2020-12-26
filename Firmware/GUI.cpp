@@ -355,6 +355,17 @@ void MakeDisplay_CalibServo( )
    Body.Lines[7] = (display_line*)new display_line_int8(    7, "   TrCoef=", mStrValue3Pct, &Servos_pst[g_CalibServo_select].trim_coef_si8);
 }
 
+uint16_t g_CalibMixer_select;
+void MakeDisplay_CalibMixer( )
+{
+   Body.Delete();
+   Body.Lines[0] = (display_line*)new display_line_uint16(  0, " Calib. Mixer "  , mStrValue2d , &g_CalibMixer_select);
+   Body.Lines[1] = (display_line*)new display_line_uint8(   1, "   Input = ", mStrValue2d,   &Mixers_pst[g_CalibMixer_select].in_idx_ui8);
+   Body.Lines[2] = (display_line*)new display_line_uint8(   2, "   Courbe= ", mStrValue2d,   &Mixers_pst[g_CalibMixer_select].curve_ui8);
+   Body.Lines[3] = (display_line*)new display_line_int8(    3, "   Coef  = ", mStrValue3Pct, &Mixers_pst[g_CalibMixer_select].coef_si8);
+   Body.Lines[4] = (display_line*)new display_line_uint8(   4, "   Valid = ", mStrValue2d,   &Mixers_pst[g_CalibMixer_select].valid_ui8);
+   Body.Lines[5] = (display_line*)new display_line_uint8(   5, "   Output= ", mStrValue2d,   &Mixers_pst[g_CalibMixer_select].out_idx_ui8);
+}
 
 void Edit_CalibInput( )
 {
@@ -374,10 +385,22 @@ void Edit_CalibServo( )
       case 2:  md_ChangeUInt16_Adc_mV( &Servos_pst[g_CalibServo_select].min_us_ui16 ); break;
       case 3:  md_ChangeUInt16_Adc_mV( &Servos_pst[g_CalibServo_select].med_us_ui16 ); break;
       case 4:  md_ChangeUInt16_Adc_mV( &Servos_pst[g_CalibServo_select].max_us_ui16 ); break;
-      case 5:  ChangeUInt8(  &Servos_pst[g_CalibServo_select].out_idx_ui8  , 1 , 0 , NB_OUTPUTS-1 ); break;
-      case 6:  ChangeUInt8(  &Servos_pst[g_CalibServo_select].trim_idx_ui8 , 1 , 0 , NB_INPUTS-1  ); break;
-      case 7:  ChangeInt8(&Servos_pst[g_CalibServo_select].trim_coef_si8,5,-95,95); break;
+      case 5:  ChangeUInt8(  &Servos_pst[g_CalibServo_select].out_idx_ui8  , 1 ,   0 , NB_OUTPUTS-1 ); break;
+      case 6:  ChangeUInt8(  &Servos_pst[g_CalibServo_select].trim_idx_ui8 , 1 ,   0 , NB_INPUTS-1  ); break;
+      case 7:  ChangeInt8(   &Servos_pst[g_CalibServo_select].trim_coef_si8, 5 , -95 , 95); break;
       default: break;
+   }
+}
+
+void Edit_CalibMixer( )
+{
+   switch( currentEditLine )
+   {
+      case 1:  ChangeUInt8(  &Mixers_pst[g_CalibMixer_select].in_idx_ui8  , 1 ,    0 , NB_INPUTS-1        );     break;
+      case 2:  ChangeUInt8(  &Mixers_pst[g_CalibMixer_select].curve_ui8   , 1 ,    0 , curve_max_em-1     );     break;
+      case 3:  ChangeInt8(   &Mixers_pst[g_CalibMixer_select].coef_si8    , 1 , -120 , 120                );     break;
+      case 4:  ChangeUInt8(  &Mixers_pst[g_CalibMixer_select].valid_ui8   , 1 ,    0 , validity_max_em-1  );     break;
+      case 5:  ChangeUInt8(  &Mixers_pst[g_CalibMixer_select].out_idx_ui8 , 1 ,    0 , NB_OUTPUTS-1       );     break;
    }
 }
 
@@ -386,6 +409,7 @@ enum PAGES_en : uint8_t
    PAGE_INIT=0,
    PAGE_CALIB_INPUTS,
    PAGE_CALIB_SERVOS,
+   PAGE_CALIB_MIXERS,
    PAGE_MAX
 };
 
@@ -411,6 +435,11 @@ void ProcessGUI()
          case PAGE_CALIB_SERVOS:
             g_CalibServo_select=0;
             MakeDisplay_CalibServo();
+            break;
+
+         case PAGE_CALIB_MIXERS:
+            g_CalibMixer_select=0;
+            MakeDisplay_CalibMixer();
             break;
       }
       currentEditLine = 0;
@@ -444,7 +473,19 @@ void ProcessGUI()
             Edit_CalibServo();
          }
          EditLineCursor(0,7);
+         break;
 
+      case PAGE_CALIB_MIXERS:
+         if( currentEditLine == 0 ) /* if the 1st line */
+         {
+            if( md_ChangeUInt16_Index( &g_CalibMixer_select , NB_MIXERS-1) )
+               MakeDisplay_CalibMixer();
+         }
+         else
+         {
+            Edit_CalibMixer();
+         }
+         EditLineCursor(0,5);
          break;
    }
 
