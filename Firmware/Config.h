@@ -44,14 +44,17 @@
 const float SCALE_mV_per_ADC = (5000.0f/1023.0f);
 const float SCALE_ADC_per_mV = (1023.0f/5000.0f);
 
-const int MIN_MANCHES_mV = 1800;
-const int MAX_MANCHES_mV = 3200;
+#define gd_MIN_mV                (0)
+#define gd_MAX_mV                (5000)
 
-const int MIN_AUX_mV = 0000;
-const int MAX_AUX_mV = 5000;
+#define gd_STEP_TUNING_Up_mV     (50)
+#define gd_STEP_TUNING_Down_mV   (5)
 
-const int STEP_TUNING_mV = 50;
-const int STEP_TUNING_us = 20;
+#define gd_MIN_us                (800)
+#define gd_MAX_us                (2200)
+
+#define gd_STEP_TUNING_Up_us     (100)
+#define gd_STEP_TUNING_Down_us   (10)
 
 namespace Config {
 

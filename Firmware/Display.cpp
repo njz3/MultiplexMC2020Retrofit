@@ -249,7 +249,12 @@ void CDisplay::clearLine(int row)
 void CDisplay::clearBody()
 {
 #ifndef TEST_MEM
-  for(int row=1; row<15; row++) {
+#ifdef HEADER_FOOTER
+  for(int row=1; row<15; row++)
+#else
+  for(int row=0; row<16; row++)
+#endif
+  {
     u8x8.clearLine(row);
   }
 #endif

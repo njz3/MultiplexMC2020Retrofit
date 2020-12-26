@@ -70,7 +70,7 @@ void setup() {
 
 
 void loop() {
-   Task_Adc2Ppm();
+   //Task_Adc2Ppm(); //re;oved from here: done in interuption context
    IO_ReadButtons();
    ProcessGUI();
 }

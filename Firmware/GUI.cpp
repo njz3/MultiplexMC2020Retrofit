@@ -10,7 +10,12 @@ int currentEditLine = 0;
 int currentDisplayValuesPage = 0;
 int currentDisplayValuesMode = 0;
 
-bool ChangeUInt16(uint16_t *pVal, uint16_t stp, uint16_t min, uint16_t max) {
+
+#define md_ChangeUInt16_Adc_mV(pVal)      ChangeUInt16(pVal, gd_STEP_TUNING_Up_mV, gd_STEP_TUNING_Down_mV, gd_MIN_mV, gd_MAX_mV)
+#define md_ChangeUInt16_us(pVal)          ChangeUInt16(pVal, gd_STEP_TUNING_Up_us, gd_STEP_TUNING_Down_us, gd_MIN_us, gd_MAX_us)
+#define md_ChangeUInt16_Index(pVal,max)   ChangeUInt16(pVal, 1, 1, 0, max)
+
+bool ChangeUInt16(uint16_t *pVal, uint16_t stp_up, uint16_t stp_down, uint16_t min, uint16_t max) {
    bool edited = false;
    if (pVal==NULL)
       return edited;
@@ -20,7 +25,37 @@ bool ChangeUInt16(uint16_t *pVal, uint16_t stp, uint16_t min, uint16_t max) {
       if(*pVal != max) // if not already equal to max
       {
          edited = true;
-         if(*pVal < max-stp) // precheck overflow (avoid bug if max >= 32768 - step)
+         if(*pVal < max-stp_up) // precheck overflow (avoid bug if max >= 32768 - step)
+            *pVal += stp_up;
+         else
+            *pVal = max;
+      }
+   }
+   else if( IS_PRESSED(BUTTONS_ID::BTN_MINUS) )
+   {
+      if(*pVal != min) // if not already equal to min
+      {
+         edited = true;
+         if( min+stp_down < *pVal)  // precheck underflow
+            *pVal -= stp_down;
+         else
+            *pVal = min;
+      }
+   }
+  return edited;
+}
+
+bool ChangeUInt8(uint8_t *pVal, uint8_t stp, uint8_t min, uint8_t max) {
+   bool edited = false;
+   if (pVal==NULL)
+      return edited;
+
+   if( IS_PRESSED(BUTTONS_ID::BTN_PLUS) )
+   {
+      if(*pVal != max) // if not already equal to max
+      {
+         edited = true;
+         if(*pVal < max-stp) // precheck overflow (avoid bug if max >= 256 - step)
             *pVal += stp;
          else
             *pVal = max;
@@ -31,7 +66,7 @@ bool ChangeUInt16(uint16_t *pVal, uint16_t stp, uint16_t min, uint16_t max) {
       if(*pVal != min) // if not already equal to min
       {
          edited = true;
-         if( min+stp < *pVal)  // precheck underflow
+         if( min+stp < *pVal)
             *pVal -= stp;
          else
             *pVal = min;
@@ -40,7 +75,7 @@ bool ChangeUInt16(uint16_t *pVal, uint16_t stp, uint16_t min, uint16_t max) {
   return edited;
 }
 
-bool ChangeUInt8(uint8_t *pVal, uint8_t stp, uint8_t min, uint8_t max) {
+bool ChangeInt8(int8_t *pVal, int8_t stp, int8_t min, int8_t max) {
    bool edited = false;
    if (pVal==NULL)
       return edited;
@@ -294,9 +329,8 @@ void EditLineCursor( int min, int max )
 
 uint16_t g_CalibInput_select;
 uint16_t g_ProcessGUI_Cnt=0;
-void MakeDisplay_CalibInput( uint16_t input )
+void MakeDisplay_CalibInput( )
 {
-   g_CalibInput_select = constrain( input , 0 , NB_INPUTS-1);
    Body.Delete();
    Body.Lines[0] = (display_line*)new display_line_uint16(  0, " Calib. Input "  , mStrValue2d , &g_CalibInput_select);
    Body.Lines[1] = (display_line*)new display_line_ft100(   1, "   Val= ", mStrValue3Pct, &Inputs_pst[g_CalibInput_select].val_ft);
@@ -308,9 +342,8 @@ void MakeDisplay_CalibInput( uint16_t input )
 }
 
 uint16_t g_CalibServo_select;
-void MakeDisplay_CalibServo( uint16_t servo )
+void MakeDisplay_CalibServo( )
 {
-   g_CalibServo_select = constrain( servo , 0 ,  NB_SERVOS-1);
    Body.Delete();
    Body.Lines[0] = (display_line*)new display_line_uint16(  0, " Calib. Servo "  , mStrValue2d , &g_CalibServo_select);
    Body.Lines[1] = (display_line*)new display_line_uint16(  1, "   Val= ", mStrValue4us,  &Servos_us_pui16[g_CalibServo_select]);
@@ -322,6 +355,31 @@ void MakeDisplay_CalibServo( uint16_t servo )
    Body.Lines[7] = (display_line*)new display_line_int8(    7, "   TrCoef=", mStrValue3Pct, &Servos_pst[g_CalibServo_select].trim_coef_si8);
 }
 
+
+void Edit_CalibInput( )
+{
+   switch( currentEditLine )
+   {
+      case 3:  md_ChangeUInt16_Adc_mV( &Inputs_pst[g_CalibInput_select].min_mV_ui16 ); break;
+      case 4:  md_ChangeUInt16_Adc_mV( &Inputs_pst[g_CalibInput_select].med_mV_ui16 ); break;
+      case 5:  md_ChangeUInt16_Adc_mV( &Inputs_pst[g_CalibInput_select].max_mV_ui16 ); break;
+      default: break;
+   }
+}
+
+void Edit_CalibServo( )
+{
+   switch( currentEditLine )
+   {
+      case 2:  md_ChangeUInt16_Adc_mV( &Servos_pst[g_CalibServo_select].min_us_ui16 ); break;
+      case 3:  md_ChangeUInt16_Adc_mV( &Servos_pst[g_CalibServo_select].med_us_ui16 ); break;
+      case 4:  md_ChangeUInt16_Adc_mV( &Servos_pst[g_CalibServo_select].max_us_ui16 ); break;
+      case 5:  ChangeUInt8(  &Servos_pst[g_CalibServo_select].out_idx_ui8  , 1 , 0 , NB_OUTPUTS-1 ); break;
+      case 6:  ChangeUInt8(  &Servos_pst[g_CalibServo_select].trim_idx_ui8 , 1 , 0 , NB_INPUTS-1  ); break;
+      case 7:  ChangeInt8(&Servos_pst[g_CalibServo_select].trim_coef_si8,5,-95,95); break;
+      default: break;
+   }
+}
 
 enum PAGES_en : uint8_t
 {
@@ -347,41 +405,46 @@ void ProcessGUI()
       {
          case PAGE_CALIB_INPUTS:
             g_CalibInput_select = 0;
-            MakeDisplay_CalibInput(g_CalibInput_select);
+            MakeDisplay_CalibInput();
             break;
 
          case PAGE_CALIB_SERVOS:
             g_CalibServo_select=0;
-            MakeDisplay_CalibServo(g_CalibServo_select);
+            MakeDisplay_CalibServo();
             break;
       }
+      currentEditLine = 0;
       Body.PrintAllFixed();
    }
 
-   if( currentEditLine == 0 ) /* if the 1st line */
-   {
-      switch( g_Page )
-      {
-         case PAGE_CALIB_INPUTS:
-            if( ChangeUInt16( &g_CalibInput_select , 1 , 0 , NB_INPUTS-1) )
-               MakeDisplay_CalibInput(g_CalibInput_select);
-            break;
-
-         case PAGE_CALIB_SERVOS:
-            if( ChangeUInt16( &g_CalibServo_select , 1 , 0 , NB_SERVOS-1) )
-               MakeDisplay_CalibServo(g_CalibServo_select);
-            break;
-      }
-   }
 
    switch( g_Page )
    {
       case PAGE_CALIB_INPUTS:
+         if( currentEditLine == 0 ) /* if the 1st line */
+         {
+            if( md_ChangeUInt16_Index( &g_CalibInput_select , NB_INPUTS-1) )
+               MakeDisplay_CalibInput();
+         }
+         else
+         {
+            Edit_CalibInput();
+         }
          EditLineCursor(0,5);
          break;
 
       case PAGE_CALIB_SERVOS:
+         if( currentEditLine == 0 ) /* if the 1st line */
+         {
+            if( md_ChangeUInt16_Index( &g_CalibServo_select , NB_SERVOS-1) )
+               MakeDisplay_CalibServo();
+         }
+         else
+         {
+            Edit_CalibServo();
+         }
          EditLineCursor(0,7);
+
          break;
    }
 
