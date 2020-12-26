@@ -13,6 +13,7 @@
 #endif
 
 //#define TEST_MEM
+//#define HEADER_FOOTER
 
 // Use D10 for all
 #define OUTPUT_PIN (10)

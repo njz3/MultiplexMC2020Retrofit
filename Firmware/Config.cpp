@@ -9,20 +9,10 @@ namespace Config {
 
 EEPROM_CONFIG ConfigFile;
 
-const char* ChannelNames[] = {
-  "Prof. ",
-  "Direc.",
-  "Gaz   ",
-  "Ailern",
-  "Flap  ",
-  "Train ",
-  "TrmPrf",
-  "TrmDir",
-  "TrmAil",
-};
 
 int SaveConfigToEEPROM()
 {
+#if 0
   if (EEPROM.length()<sizeof(EEPROM_CONFIG)) {
     return -1;
   }
@@ -36,11 +26,13 @@ int SaveConfigToEEPROM()
   for (int i = 0 ; i < (int)sizeof(EEPROM_CONFIG); i++) {
     EEPROM.write(i, pBlock[i]);
   }
+#endif
   return 1;
 }
 
 int LoadConfigFromEEPROM()
 {
+#if 0
   if (EEPROM.length()<sizeof(EEPROM_CONFIG)) {
     return -1;
   }
@@ -60,11 +52,13 @@ int LoadConfigFromEEPROM()
   }
   // Ok, store new config
   ConfigFile = newCfg;
+#endif
   return 1;
 }
 
 void ResetConfig()
 {
+#if 0
   // CONTROLLER
   ConfigFile.options = 0;
 
@@ -107,7 +101,9 @@ void ResetConfig()
       ConfigFile.channels[i].trim_mV = ((MIN_AUX_mV + MAX_AUX_mV)>>1);
     }
   }
+#endif
 }
+
 
 }
 

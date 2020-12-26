@@ -54,7 +54,8 @@ typedef struct {
 }servos_tst; // tst = type struct
 
 extern input_tst Inputs_pst[NB_INPUTS];
-
+extern uint16_t   Servos_us_pui16[NB_SERVOS];
+extern servos_tst Servos_pst[NB_SERVOS];
 
 
 extern uint16_t ButtonsPressed;

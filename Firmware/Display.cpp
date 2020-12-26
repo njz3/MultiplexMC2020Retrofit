@@ -76,24 +76,27 @@ void CDisplay::begin() {
 
 void CDisplay::cleanup(void)
 {
-  #ifndef TEST_MEM
+#ifndef TEST_MEM
   u8x8.clear();
 
+#ifdef HEADER_FOOTER
   setSmallFont();
   u8x8.inverse();
   u8x8.print(header);
   u8x8.setCursor(0,15);
   u8x8.print(footer);
+#endif // HEADER_FOOTER
   u8x8.noInverse();
   setNormalFont();
   u8x8.setCursor(0,1);
-  #endif
+#endif // TEST_MEM
   col = 0;
   row = 1;
 }
 
 void CDisplay::refreshHeader()
 {
+#ifdef HEADER_FOOTER
   #ifndef TEST_MEM
   setSmallFont();
   u8x8.setCursor(0,0);
@@ -104,10 +107,12 @@ void CDisplay::refreshHeader()
   setNormalFont();
   u8x8.setCursor(col, row);
   #endif
+#endif // HEADER_FOOTER
 }
 
 void CDisplay::refreshFooter()
 {
+#ifdef HEADER_FOOTER
   #ifndef TEST_MEM
   setSmallFont();
   u8x8.setCursor(0,15);
@@ -118,6 +123,7 @@ void CDisplay::refreshFooter()
   setNormalFont();
   u8x8.setCursor(col, row);
   #endif
+#endif // HEADER_FOOTER
 }
 
 void CDisplay::draw_bar(uint8_t c, uint8_t is_inverse)
