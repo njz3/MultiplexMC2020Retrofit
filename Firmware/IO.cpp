@@ -5,7 +5,7 @@
 
 input_tst Inputs_pst[NB_INPUTS] = {  // pst = pointer to structure
          /* pin,  raw, mV, min_mV, med_mV, max_mV, value*/
-  /*0*/  { PIN_NA, 0,  0,    01,     02,     03,  +0.8f},  /**< constant                               */
+  /*0*/  { PIN_NA, 0,  0,    01,     02,     03,  +1.0f},  /**< constant                               */
   /*1*/  { A3,     0,  0,  1001,   2500,   4000,  -0.1f},  /**< Stick Right Horizontal (Ailerons)      */
   /*2*/  { A0,     0,  0,  1002,   2500,   4000,  -0.2f},  /**< Stick Left  Vertical   (Profondeur)    */
   /*3*/  { A1,     0,  0,  1003,   2500,   4000,   0.0f},  /**< Stick Left  Horizontal (Derive)        */

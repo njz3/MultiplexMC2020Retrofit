@@ -10,7 +10,7 @@ int currentEditLine = 0;
 int currentDisplayValuesPage = 0;
 int currentDisplayValuesMode = 0;
 
-bool ChangeInt16(int16_t *pVal, int16_t stp, int16_t min, int16_t max) {
+bool ChangeUInt16(uint16_t *pVal, uint16_t stp, uint16_t min, uint16_t max) {
    bool edited = false;
    if (pVal==NULL)
       return edited;
@@ -296,7 +296,7 @@ uint16_t g_CalibInput_select;
 uint16_t g_ProcessGUI_Cnt=0;
 void MakeDisplay_CalibInput( uint16_t input )
 {
-   g_CalibInput_select = constrain( input , 0 , 5); //todo limit hardcoded
+   g_CalibInput_select = constrain( input , 0 , NB_INPUTS-1);
    Body.Delete();
    Body.Lines[0] = (display_line*)new display_line_uint16(  0, " Calib. Input "  , mStrValue2d , &g_CalibInput_select);
    Body.Lines[1] = (display_line*)new display_line_ft100(   1, "   Val= ", mStrValue3Pct, &Inputs_pst[g_CalibInput_select].val_ft);
@@ -310,7 +310,7 @@ void MakeDisplay_CalibInput( uint16_t input )
 uint16_t g_CalibServo_select;
 void MakeDisplay_CalibServo( uint16_t servo )
 {
-   g_CalibServo_select = constrain( servo , 0 , 5); //todo limit hardcoded
+   g_CalibServo_select = constrain( servo , 0 ,  NB_SERVOS-1);
    Body.Delete();
    Body.Lines[0] = (display_line*)new display_line_uint16(  0, " Calib. Servo "  , mStrValue2d , &g_CalibServo_select);
    Body.Lines[1] = (display_line*)new display_line_uint16(  1, "   Val= ", mStrValue4us,  &Servos_us_pui16[g_CalibServo_select]);
@@ -346,14 +346,32 @@ void ProcessGUI()
       switch( g_Page )
       {
          case PAGE_CALIB_INPUTS:
-            MakeDisplay_CalibInput(1);
+            g_CalibInput_select = 0;
+            MakeDisplay_CalibInput(g_CalibInput_select);
             break;
 
          case PAGE_CALIB_SERVOS:
-            MakeDisplay_CalibServo(1);
+            g_CalibServo_select=0;
+            MakeDisplay_CalibServo(g_CalibServo_select);
             break;
       }
       Body.PrintAllFixed();
+   }
+
+   if( currentEditLine == 0 ) /* if the 1st line */
+   {
+      switch( g_Page )
+      {
+         case PAGE_CALIB_INPUTS:
+            if( ChangeUInt16( &g_CalibInput_select , 1 , 0 , NB_INPUTS-1) )
+               MakeDisplay_CalibInput(g_CalibInput_select);
+            break;
+
+         case PAGE_CALIB_SERVOS:
+            if( ChangeUInt16( &g_CalibServo_select , 1 , 0 , NB_SERVOS-1) )
+               MakeDisplay_CalibServo(g_CalibServo_select);
+            break;
+      }
    }
 
    switch( g_Page )
