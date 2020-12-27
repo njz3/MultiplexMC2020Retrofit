@@ -79,6 +79,7 @@ typedef struct {
 
 extern input_tst Inputs_pst[NB_INPUTS];
 extern mixers_tst Mixers_pst[NB_MIXERS];
+extern float Outputs_pft[NB_OUTPUTS];
 extern uint16_t   Servos_us_pui16[NB_SERVOS];
 extern servos_tst Servos_pst[NB_SERVOS];
 

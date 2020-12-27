@@ -18,14 +18,6 @@ input_tst Inputs_pst[NB_INPUTS] = {  // pst = pointer to structure
   /*10*/ { PIN_NA, 0,  0,  1000,   2500,   4000,   0.0f}   /**< Aux 2  */
 };
 
-
-
-
-
-
-
-
-
 mixers_tst Mixers_pst[NB_MIXERS]={
         /*   out,    input,  curve,          coef,   valid */
  /*0*/  {    0,      0,      curve_normal_em, +100,    validity_always_em}, /* dummy        */
@@ -42,9 +34,7 @@ mixers_tst Mixers_pst[NB_MIXERS]={
  /*11*/ {   11,      0,      curve_normal_em, +100,    validity_always_em}, /* dummy        */
 };
 
-
 float Outputs_pft[NB_OUTPUTS];
-
 
 uint16_t   Servos_us_pui16[NB_SERVOS];
 servos_tst Servos_pst[NB_SERVOS]={
