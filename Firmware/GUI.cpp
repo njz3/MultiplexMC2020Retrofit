@@ -404,28 +404,32 @@ void Edit_CalibMixer( )
    }
 }
 
-void MakeDisplay_ShowInputs( )
+void MakeDisplay_ShowInputsOutputs( int io )
 {
    Body.Delete();
-   Body.Lines[0] = (display_line*)new display_line( 0, "Affichage Inputs" );
+   if( io == 0 )
+      Body.Lines[0] = (display_line*)new display_line( 0, "Affich. Outputs" );
+   else
+      Body.Lines[0] = (display_line*)new display_line( 0, "Affich. Inputs" );
    Body.Lines[1] = (display_line*)new display_line( 1, " 0:....  1:...." );
    Body.Lines[2] = (display_line*)new display_line( 2, " 2:....  3:...." );
    Body.Lines[3] = (display_line*)new display_line( 3, " 4:....  5:...." );
    Body.Lines[4] = (display_line*)new display_line( 4, " 6:....  7:...." );
    Body.Lines[5] = (display_line*)new display_line( 5, " 8:....  9:...." );
-   Body.Lines[6] = (display_line*)new display_line( 6, "10:.... " );
+   Body.Lines[6] = (display_line*)new display_line( 6, " A:....  B:...." );
 }
 
-void MakeDisplay_ShowOutputs( )
+void MakeDisplay_ShowServos( )
 {
    Body.Delete();
-   Body.Lines[0] = (display_line*)new display_line( 0, "Affichage Outputs" );
-   Body.Lines[1] = (display_line*)new display_line( 1, " 0:....  1:...." );
-   Body.Lines[2] = (display_line*)new display_line( 2, " 2:....  3:...." );
-   Body.Lines[3] = (display_line*)new display_line( 3, " 4:....  5:...." );
-   Body.Lines[4] = (display_line*)new display_line( 4, " 6:....  7:...." );
-   Body.Lines[5] = (display_line*)new display_line( 5, " 8:....  9:...." );
-   Body.Lines[6] = (display_line*)new display_line( 6, "10:.... 11:...." );
+   Body.Lines[0] = (display_line*)new display_line( 0, "Affich. Servos" );
+   Body.Lines[1] = (display_line*)new display_line( 1, " 0:+...% ....us" );
+   Body.Lines[2] = (display_line*)new display_line( 2, " 1:" );
+   Body.Lines[3] = (display_line*)new display_line( 3, " 2:" );
+   Body.Lines[4] = (display_line*)new display_line( 4, " 3:" );
+   Body.Lines[5] = (display_line*)new display_line( 5, " 4:" );
+   Body.Lines[6] = (display_line*)new display_line( 6, " 5:" );
+   Body.Lines[7] = (display_line*)new display_line( 7, " 6:" );
 }
 
 void Update_ShowInputs( )
@@ -444,7 +448,7 @@ void Update_ShowInputs( )
    }
 }
 
-void Update_ShowOutputs ()
+void Update_ShowOutputs( )
 {
    char buf[8];
    for( int i=0 ; i<NB_OUTPUTS ; i++ )
@@ -460,6 +464,20 @@ void Update_ShowOutputs ()
    }
 }
 
+void Update_ShowServos( )
+{
+   char buf[8];
+   for( int i=0 ; i<NB_SERVOS ; i++ )
+   {
+      sprintf(buf, mStrValue3Pct, Outputs_pft[Servos_pst[i].out_idx_ui8] * 100);
+      Display.setCursor( 3, i*2+2 );
+      Display.print(buf);
+
+      sprintf(buf, mStrValue4us, Servos_us_pui16[i]);
+      Display.setCursor( 9, i*2+2 );
+      Display.print(buf);
+   }
+}
 
 
 enum PAGES_en : uint8_t
@@ -467,6 +485,7 @@ enum PAGES_en : uint8_t
    PAGE_INIT=0,
    PAGE_SHOW_INPUTS,
    PAGE_SHOW_OUTPUTS,
+   PAGE_SHOW_SERVOS,
    PAGE_CALIB_INPUTS,
    PAGE_CALIB_SERVOS,
    PAGE_CALIB_MIXERS,
@@ -488,11 +507,15 @@ void ProcessGUI()
       switch( g_Page )
       {
          case PAGE_SHOW_INPUTS:
-            MakeDisplay_ShowInputs();
+            MakeDisplay_ShowInputsOutputs(1);
             break;
 
          case PAGE_SHOW_OUTPUTS:
-            MakeDisplay_ShowOutputs();
+            MakeDisplay_ShowInputsOutputs(0);
+            break;
+
+         case PAGE_SHOW_SERVOS:
+            MakeDisplay_ShowServos();
             break;
 
          case PAGE_CALIB_INPUTS:
@@ -523,6 +546,10 @@ void ProcessGUI()
 
       case PAGE_SHOW_OUTPUTS:
          Update_ShowOutputs();
+         break;
+
+      case PAGE_SHOW_SERVOS:
+         Update_ShowServos();
          break;
 
       case PAGE_CALIB_INPUTS:
