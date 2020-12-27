@@ -404,9 +404,38 @@ void Edit_CalibMixer( )
    }
 }
 
+void MakeDisplay_ShowInputs( )
+{
+   Body.Delete();
+   Body.Lines[0] = (display_line*)new display_line( 0, "Affichage Inputs" );
+   Body.Lines[1] = (display_line*)new display_line( 1, " 0:....  1:...." );
+   Body.Lines[2] = (display_line*)new display_line( 2, " 2:....  3:...." );
+   Body.Lines[3] = (display_line*)new display_line( 3, " 4:....  5:...." );
+   Body.Lines[4] = (display_line*)new display_line( 4, " 6:....  7:...." );
+   Body.Lines[5] = (display_line*)new display_line( 5, " 8:....  9:...." );
+   Body.Lines[6] = (display_line*)new display_line( 6, "10:...." );
+}
+
+void Update_ShowInputs( )
+{
+   char buf[8];
+   for( int i=0 ; i<NB_INPUTS ; i++ )
+   {
+      sprintf(buf, mStrValue3Pct, Inputs_pst[i].val_ft * 100);
+
+      if( i&1 ) // if odd
+         Display.setCursor( 11, (i/2)*2+2 );
+      else // if even
+         Display.setCursor(  3, (i/2)*2+2 );
+
+      Display.print(buf);
+   }
+}
+
 enum PAGES_en : uint8_t
 {
    PAGE_INIT=0,
+   PAGE_SHOW_INPUTS,
    PAGE_CALIB_INPUTS,
    PAGE_CALIB_SERVOS,
    PAGE_CALIB_MIXERS,
@@ -427,6 +456,10 @@ void ProcessGUI()
 
       switch( g_Page )
       {
+         case PAGE_SHOW_INPUTS:
+            MakeDisplay_ShowInputs();
+            break;
+
          case PAGE_CALIB_INPUTS:
             g_CalibInput_select = 0;
             MakeDisplay_CalibInput();
@@ -449,6 +482,10 @@ void ProcessGUI()
 
    switch( g_Page )
    {
+      case PAGE_SHOW_INPUTS:
+         Update_ShowInputs();
+         break;
+
       case PAGE_CALIB_INPUTS:
          if( currentEditLine == 0 ) /* if the 1st line */
          {
