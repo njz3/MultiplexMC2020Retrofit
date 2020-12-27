@@ -404,7 +404,7 @@ void Edit_CalibMixer( )
    }
 }
 
-void MakeDisplay_ShowInputsOutputs( )
+void MakeDisplay_ShowInputs( )
 {
    Body.Delete();
    Body.Lines[0] = (display_line*)new display_line( 0, "Affichage Inputs" );
@@ -413,7 +413,19 @@ void MakeDisplay_ShowInputsOutputs( )
    Body.Lines[3] = (display_line*)new display_line( 3, " 4:....  5:...." );
    Body.Lines[4] = (display_line*)new display_line( 4, " 6:....  7:...." );
    Body.Lines[5] = (display_line*)new display_line( 5, " 8:....  9:...." );
-   Body.Lines[6] = (display_line*)new display_line( 6, " A:....  B:...." );
+   Body.Lines[6] = (display_line*)new display_line( 6, "10:.... " );
+}
+
+void MakeDisplay_ShowOutputs( )
+{
+   Body.Delete();
+   Body.Lines[0] = (display_line*)new display_line( 0, "Affichage Outputs" );
+   Body.Lines[1] = (display_line*)new display_line( 1, " 0:....  1:...." );
+   Body.Lines[2] = (display_line*)new display_line( 2, " 2:....  3:...." );
+   Body.Lines[3] = (display_line*)new display_line( 3, " 4:....  5:...." );
+   Body.Lines[4] = (display_line*)new display_line( 4, " 6:....  7:...." );
+   Body.Lines[5] = (display_line*)new display_line( 5, " 8:....  9:...." );
+   Body.Lines[6] = (display_line*)new display_line( 6, "10:.... 11:...." );
 }
 
 void Update_ShowInputs( )
@@ -476,8 +488,11 @@ void ProcessGUI()
       switch( g_Page )
       {
          case PAGE_SHOW_INPUTS:
+            MakeDisplay_ShowInputs();
+            break;
+
          case PAGE_SHOW_OUTPUTS:
-            MakeDisplay_ShowInputsOutputs();
+            MakeDisplay_ShowOutputs();
             break;
 
          case PAGE_CALIB_INPUTS:
