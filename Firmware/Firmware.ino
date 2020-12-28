@@ -46,12 +46,8 @@ void setup() {
   Serial.println(mPPMStarted);
   Display.println(mPPMStarted);
   
-  ppmEncoder.PPM_INTERVAL_LENGTH_us = Config::ConfigFile.interval_us;
-  ppmEncoder.PPM_FRAME_LENGTH_us = Config::ConfigFile.frame_length_us;
-  ppmEncoder.MIN_us = Config::ConfigFile.min_pulse_us;
-  ppmEncoder.MAX_us = Config::ConfigFile.max_pulse_us;
   // Nombre de voies
-  ppmEncoder.begin(OUTPUT_PIN, Config::ConfigFile.NBchannels);
+  ppmEncoder.begin(OUTPUT_PIN, 7);
   
   delay(200);
   Display.print(mNChanEq);

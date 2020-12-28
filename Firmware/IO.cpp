@@ -6,16 +6,16 @@
 input_tst Inputs_pst[NB_INPUTS] = {  // pst = pointer to structure
          /* pin,  raw, mV, min_mV, med_mV, max_mV, value*/
   /*0*/  { PIN_NA, 0,  0,    01,     02,     03,  +1.0f},  /**< constant                               */
-  /*1*/  { A3,     0,  0,  1001,   2500,   4000,  -0.1f},  /**< Stick Right Horizontal (Ailerons)      */
-  /*2*/  { A0,     0,  0,  1002,   2500,   4000,  -0.2f},  /**< Stick Left  Vertical   (Profondeur)    */
-  /*3*/  { A1,     0,  0,  1003,   2500,   4000,   0.0f},  /**< Stick Left  Horizontal (Derive)        */
-  /*4*/  { A2,     0,  0,  1004,   2500,   4000,   0.0f},  /**< Stick Right Vertical   (Gaz)           */
-  /*5*/  { A6,     0,  0,  1005,   2500,   4000,   0.0f},  /**< Trim Right Horizontal (Ailerons)       */
-  /*6*/  { A7,     0,  0,  1006,   2500,   4000,   0.0f},  /**< Trim Left  Vertical   (Profondeur)     */
-  /*7*/  { PIN_NA, 0,  0,  1007,   2500,   4000,   0.0f},  /**< Trim Left  Horizontal (Derive)         */
-  /*8*/  { PIN_NA, 0,  0,  1008,   2500,   4000,   0.0f},  /**< Trim Right Vertical   (Gaz)            */
-  /*9*/  { PIN_NA, 0,  0,  1009,   2500,   4000,   0.0f},  /**< Aux 1  */
-  /*10*/ { PIN_NA, 0,  0,  1000,   2500,   4000,   0.0f}   /**< Aux 2  */
+  /*1*/  { A0,     0,  0,  1001,   2500,   4000,   0.0f},  /**< Stick Right Horizontal (Ailerons)      */
+  /*2*/  { A1,     0,  0,  1002,   2500,   4000,   0.0f},  /**< Stick Left  Vertical   (Profondeur)    */
+  /*3*/  { A2,     0,  0,  1003,   2500,   4000,   0.0f},  /**< Stick Left  Horizontal (Derive)        */
+  /*4*/  { A3,     0,  0,  1004,   2500,   4000,   0.0f},  /**< Stick Right Vertical   (Gaz)           */
+  /*5*/  { A4,     0,  0,  1005,   2500,   4000,   0.0f},  /**< Trim Right Horizontal (Ailerons)       */
+  /*6*/  { A5,     0,  0,  1006,   2500,   4000,   0.0f},  /**< Trim Left  Vertical   (Profondeur)     */
+  /*7*/  { A6,     0,  0,  1007,   2500,   4000,   0.0f},  /**< Trim Left  Horizontal (Derive)         */
+  /*8*/  { A7,     0,  0,  1008,   2500,   4000,   0.0f},  /**< Trim Right Vertical   (Gaz)            */
+  /*9*/  { A8,     0,  0,  1009,   2500,   4000,   0.0f},  /**< Aux 1  */
+  /*10*/ { A9,     0,  0,  1000,   2500,   4000,   0.0f}   /**< Aux 2  */
 };
 
 mixers_tst Mixers_pst[NB_MIXERS]={

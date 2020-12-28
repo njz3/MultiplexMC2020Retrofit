@@ -435,9 +435,11 @@ void MakeDisplay_ShowServos( )
 void Update_ShowInputs( )
 {
    char buf[8];
+   int val;
    for( int i=0 ; i<NB_INPUTS ; i++ )
    {
-      sprintf(buf, mStrValue3Pct, Inputs_pst[i].val_ft * 100);
+      val =  Inputs_pst[i].val_ft * 100.0f;
+      sprintf(buf, mStrValue3Pct, val );
 
       if( i&1 ) // if odd
          Display.setCursor( 11, (i/2)*2+2 );
@@ -451,9 +453,11 @@ void Update_ShowInputs( )
 void Update_ShowOutputs( )
 {
    char buf[8];
+   int val;
    for( int i=0 ; i<NB_OUTPUTS ; i++ )
    {
-      sprintf(buf, mStrValue3Pct, Outputs_pft[i] * 100);
+      val =  Outputs_pft[i] * 100.0f;
+      sprintf(buf, mStrValue3Pct, val);
 
       if( i&1 ) // if odd
          Display.setCursor( 11, (i/2)*2+2 );
@@ -467,9 +471,11 @@ void Update_ShowOutputs( )
 void Update_ShowServos( )
 {
    char buf[8];
+   int val;
    for( int i=0 ; i<NB_SERVOS ; i++ )
    {
-      sprintf(buf, mStrValue3Pct, Outputs_pft[Servos_pst[i].out_idx_ui8] * 100);
+      val =  Outputs_pft[Servos_pst[i].out_idx_ui8] * 100.0f;
+      sprintf(buf, mStrValue3Pct,val);
       Display.setCursor( 3, i*2+2 );
       Display.print(buf);
 
