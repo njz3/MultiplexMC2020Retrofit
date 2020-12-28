@@ -2,20 +2,20 @@
 
 #include "RC_PPMEncoder.h"
 
-
-input_tst Inputs_pst[NB_INPUTS] = {  // pst = pointer to structure
-         /* pin,  raw, mV, min_mV, med_mV, max_mV, value*/
-  /*0*/  { PIN_NA, 0,  0,    01,     02,     03,  +1.0f},  /**< constant                               */
-  /*1*/  { A0,     0,  0,  1001,   2500,   4000,   0.0f},  /**< Stick Right Horizontal (Ailerons)      */
-  /*2*/  { A1,     0,  0,  1002,   2500,   4000,   0.0f},  /**< Stick Left  Vertical   (Profondeur)    */
-  /*3*/  { A2,     0,  0,  1003,   2500,   4000,   0.0f},  /**< Stick Left  Horizontal (Derive)        */
-  /*4*/  { A3,     0,  0,  1004,   2500,   4000,   0.0f},  /**< Stick Right Vertical   (Gaz)           */
-  /*5*/  { A4,     0,  0,  1005,   2500,   4000,   0.0f},  /**< Trim Right Horizontal (Ailerons)       */
-  /*6*/  { A5,     0,  0,  1006,   2500,   4000,   0.0f},  /**< Trim Left  Vertical   (Profondeur)     */
-  /*7*/  { A6,     0,  0,  1007,   2500,   4000,   0.0f},  /**< Trim Left  Horizontal (Derive)         */
-  /*8*/  { A7,     0,  0,  1008,   2500,   4000,   0.0f},  /**< Trim Right Vertical   (Gaz)            */
-  /*9*/  { A8,     0,  0,  1009,   2500,   4000,   0.0f},  /**< Aux 1  */
-  /*10*/ { A9,     0,  0,  1000,   2500,   4000,   0.0f}   /**< Aux 2  */
+input_var_tst Inputs_var_pst[NB_INPUTS] = {0};
+input_cfg_tst Inputs_cfg_pst[NB_INPUTS] = {  // pst = pointer to structure
+         /* pin,   min_mV, med_mV, max_mV, */
+  /*0*/  { VPIN1,      0,      0,      0 },  /**< constant                               */
+  /*1*/  { A0,      1001,   2500,   4000 },  /**< Stick Right Horizontal (Ailerons)      */
+  /*2*/  { A1,      1002,   2500,   4000 },  /**< Stick Left  Vertical   (Profondeur)    */
+  /*3*/  { A2,      1003,   2500,   4000 },  /**< Stick Left  Horizontal (Derive)        */
+  /*4*/  { A3,      1004,   2500,   4000 },  /**< Stick Right Vertical   (Gaz)           */
+  /*5*/  { A4,      1005,   2500,   4000 },  /**< Trim Right Horizontal (Ailerons)       */
+  /*6*/  { A5,      1006,   2500,   4000 },  /**< Trim Left  Vertical   (Profondeur)     */
+  /*7*/  { A6,      1007,   2500,   4000 },  /**< Trim Left  Horizontal (Derive)         */
+  /*8*/  { A7,      1008,   2500,   4000 },  /**< Trim Right Vertical   (Gaz)            */
+  /*9*/  { A8,      1009,   2500,   4000 },  /**< Aux 1  */
+  /*10*/ { A9,      1010,   2500,   4000 }   /**< Aux 2  */
 };
 
 mixers_tst Mixers_pst[NB_MIXERS]={
@@ -45,7 +45,7 @@ servos_tst Servos_pst[NB_SERVOS]={
  /*3*/   { 4,      0,            0,        1100,   1600,   2100},  /* Gaz        */
  /*4*/   { 1,      5,           25,        1100,   1600,   2100},  /* Ailerons 2 */
  /*5*/   { 0,      0,            0,        1100,   1600,   2100},  /* na */
- /*6*/   { 1,      1,           25,        1100,   1600,   2100},  /* na */
+ /*6*/   { 0,      0,            0,        1100,   1600,   2100},  /* na */
 };
 
 
@@ -67,8 +67,8 @@ void IO_InitPins()
   }
 
   for(int i=0; i<NB_INPUTS; i++)  {
-     if( Inputs_pst[i].pin_ui8 != PIN_NA)
-        pinMode(Inputs_pst[i].pin_ui8, INPUT);
+     if( Inputs_cfg_pst[i].pin_ui8 < VPIN0)
+        pinMode(Inputs_cfg_pst[i].pin_ui8, INPUT);
   }
 }
 
@@ -116,23 +116,33 @@ void IO_InputsProcess(void)
    uint16_t l_adc_mV_ui16;
    for(int i=0; i<NB_INPUTS; i++)
    {
-      if( Inputs_pst[i].pin_ui8 != PIN_NA )
+      if( Inputs_cfg_pst[i].pin_ui8 < VPIN0 ) // if it's a normal pin
       {
-         Inputs_pst[i].adc_raw_ui16 = analogRead(Inputs_pst[i].pin_ui8);
-         Inputs_pst[i].adc_mV_ui16  = ((float)Inputs_pst[i].adc_raw_ui16*SCALE_mV_per_ADC);
-         if( Inputs_pst[i].adc_mV_ui16 < Inputs_pst[i].med_mV_ui16 )
+         Inputs_var_pst[i].adc_raw_ui16 = analogRead(Inputs_cfg_pst[i].pin_ui8);
+         Inputs_var_pst[i].adc_mV_ui16  = ((float)Inputs_var_pst[i].adc_raw_ui16*SCALE_mV_per_ADC);
+         if( Inputs_var_pst[i].adc_mV_ui16 < Inputs_cfg_pst[i].med_mV_ui16 )
          {
-            l_adc_mV_ui16 = max( Inputs_pst[i].min_mV_ui16 , Inputs_pst[i].adc_mV_ui16 ); // limit to min
-            l_dx_ft    = l_adc_mV_ui16 - Inputs_pst[i].min_mV_ui16; // always positive
-            l_fullx_ft = Inputs_pst[i].med_mV_ui16 - Inputs_pst[i].min_mV_ui16; // always positive
-            Inputs_pst[i].val_ft = (l_dx_ft/l_fullx_ft) + (-1.0f);
+            l_adc_mV_ui16 = max( Inputs_cfg_pst[i].min_mV_ui16 , Inputs_var_pst[i].adc_mV_ui16 ); // limit to min
+            l_dx_ft    = l_adc_mV_ui16 - Inputs_cfg_pst[i].min_mV_ui16; // always positive
+            l_fullx_ft = Inputs_cfg_pst[i].med_mV_ui16 - Inputs_cfg_pst[i].min_mV_ui16; // always positive
+            Inputs_var_pst[i].val_ft = (l_dx_ft/l_fullx_ft) + (-1.0f);
          }
          else //  Inputs_pst[i].adc_mV_ui16 >= Inputs_pst[i].med_mV_ui16 )
          {
-            l_adc_mV_ui16 = min(Inputs_pst[i].adc_mV_ui16, Inputs_pst[i].max_mV_ui16);  // limit to max
-            l_dx_ft    = l_adc_mV_ui16 - Inputs_pst[i].med_mV_ui16; // always positive
-            l_fullx_ft = Inputs_pst[i].max_mV_ui16 - Inputs_pst[i].med_mV_ui16; // always positive
-            Inputs_pst[i].val_ft = (l_dx_ft/l_fullx_ft) + (0.0f);
+            l_adc_mV_ui16 = min(Inputs_var_pst[i].adc_mV_ui16, Inputs_cfg_pst[i].max_mV_ui16);  // limit to max
+            l_dx_ft    = l_adc_mV_ui16 - Inputs_cfg_pst[i].med_mV_ui16; // always positive
+            l_fullx_ft = Inputs_cfg_pst[i].max_mV_ui16 - Inputs_cfg_pst[i].med_mV_ui16; // always positive
+            Inputs_var_pst[i].val_ft = (l_dx_ft/l_fullx_ft) + (0.0f);
+         }
+      }
+      else // if it's a virtual pin
+      {
+         switch(Inputs_cfg_pst[i].pin_ui8)
+         {
+            case VPIN0: Inputs_var_pst[i].val_ft =  0.0f; break;
+            case VPIN1: Inputs_var_pst[i].val_ft = +1.0f; break;
+            case VPIN2: Inputs_var_pst[i].val_ft = -1.0f; break;
+            default:    Inputs_var_pst[i].val_ft =  0.0f; break;
          }
       }
    }
@@ -159,7 +169,7 @@ void IO_MixersProcess(void)
       }
 
       // get related input
-      l_In_ft = Inputs_pst[Mixers_pst[i].in_idx_ui8].val_ft;
+      l_In_ft = Inputs_var_pst[Mixers_pst[i].in_idx_ui8].val_ft;
 
       // apply curve
       switch(Mixers_pst[i].curve_ui8)
@@ -201,7 +211,7 @@ void IO_ServosProcess(void)
    for(int i=0; i<NB_SERVOS; i++)
    {
       /*----- Trim Process -----*/
-      l_Trim_ft  = Inputs_pst[ Servos_pst[i].trim_idx_ui8 ].val_ft; // get Trim assigned to the servo
+      l_Trim_ft  = Inputs_var_pst[ Servos_pst[i].trim_idx_ui8 ].val_ft; // get Trim assigned to the servo
       l_Trim_ft *= Servos_pst[i].trim_coef_si8;                     // Apply coef
       l_Trim_ft /= 100.0f;
 

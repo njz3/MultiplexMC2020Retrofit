@@ -7,7 +7,10 @@
 #define NB_TRIMS     (4)
 #define NB_AUXS      (2)
 
-#define PIN_NA      (0xFF)
+#define VPIN0   (0xF0)  // Virtual Pin
+#define VPIN1   (0xF1)  // Virtual Pin
+#define VPIN2   (0xF2)  // Virtual Pin
+
 
 #define NB_INPUTS   (NB_CST+NB_STICKS+NB_TRIMS+NB_AUXS)
 #define NB_MIXERS   (12)
@@ -52,13 +55,17 @@ enum BUTTONS_ID : uint16_t
 
 typedef struct {
    uint8_t  pin_ui8;
-   uint16_t adc_raw_ui16;
-   uint16_t adc_mV_ui16;
    uint16_t min_mV_ui16;
    uint16_t med_mV_ui16;
    uint16_t max_mV_ui16;
+}input_cfg_tst; // tst = type struct
+
+typedef struct {
+   uint16_t adc_raw_ui16;
+   uint16_t adc_mV_ui16;
    float    val_ft;         /**< [ -1.0f : 1.0f ] */
-}input_tst; // tst = type struct
+}input_var_tst; // tst = type struct
+
 
 typedef struct {
    uint8_t  out_idx_ui8;
@@ -77,7 +84,8 @@ typedef struct {
    uint16_t max_us_ui16;
 }servos_tst; // tst = type struct
 
-extern input_tst Inputs_pst[NB_INPUTS];
+extern input_var_tst Inputs_var_pst[NB_INPUTS];
+extern input_cfg_tst Inputs_cfg_pst[NB_INPUTS];
 extern mixers_tst Mixers_pst[NB_MIXERS];
 extern float Outputs_pft[NB_OUTPUTS];
 extern uint16_t   Servos_us_pui16[NB_SERVOS];

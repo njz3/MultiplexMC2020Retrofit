@@ -333,11 +333,11 @@ void MakeDisplay_CalibInput( )
 {
    Body.Delete();
    Body.Lines[0] = (display_line*)new display_line_uint16(  0, " Calib. Input "  , mStrValue2d , &g_CalibInput_select);
-   Body.Lines[1] = (display_line*)new display_line_ft100(   1, "   Val= ", mStrValue3Pct, &Inputs_pst[g_CalibInput_select].val_ft);
-   Body.Lines[2] = (display_line*)new display_line_uint16(  2, "   Val= ", mStrValue4mV,  &Inputs_pst[g_CalibInput_select].adc_mV_ui16);
-   Body.Lines[3] = (display_line*)new display_line_uint16(  3, "   Min= ", mStrValue4mV,  &Inputs_pst[g_CalibInput_select].min_mV_ui16);
-   Body.Lines[4] = (display_line*)new display_line_uint16(  4, "   Med= ", mStrValue4mV,  &Inputs_pst[g_CalibInput_select].med_mV_ui16);
-   Body.Lines[5] = (display_line*)new display_line_uint16(  5, "   Max= ", mStrValue4mV,  &Inputs_pst[g_CalibInput_select].max_mV_ui16);
+   Body.Lines[1] = (display_line*)new display_line_ft100(   1, "   Val= ", mStrValue3Pct, &Inputs_var_pst[g_CalibInput_select].val_ft);
+   Body.Lines[2] = (display_line*)new display_line_uint16(  2, "   Val= ", mStrValue4mV,  &Inputs_var_pst[g_CalibInput_select].adc_mV_ui16);
+   Body.Lines[3] = (display_line*)new display_line_uint16(  3, "   Min= ", mStrValue4mV,  &Inputs_cfg_pst[g_CalibInput_select].min_mV_ui16);
+   Body.Lines[4] = (display_line*)new display_line_uint16(  4, "   Med= ", mStrValue4mV,  &Inputs_cfg_pst[g_CalibInput_select].med_mV_ui16);
+   Body.Lines[5] = (display_line*)new display_line_uint16(  5, "   Max= ", mStrValue4mV,  &Inputs_cfg_pst[g_CalibInput_select].max_mV_ui16);
    Body.Lines[6] = (display_line*)new display_line_uint16(  6, "          ", mStrValue05d,  &g_ProcessGUI_Cnt);
 }
 
@@ -371,9 +371,9 @@ void Edit_CalibInput( )
 {
    switch( currentEditLine )
    {
-      case 3:  md_ChangeUInt16_Adc_mV( &Inputs_pst[g_CalibInput_select].min_mV_ui16 ); break;
-      case 4:  md_ChangeUInt16_Adc_mV( &Inputs_pst[g_CalibInput_select].med_mV_ui16 ); break;
-      case 5:  md_ChangeUInt16_Adc_mV( &Inputs_pst[g_CalibInput_select].max_mV_ui16 ); break;
+      case 3:  md_ChangeUInt16_Adc_mV( &Inputs_cfg_pst[g_CalibInput_select].min_mV_ui16 ); break;
+      case 4:  md_ChangeUInt16_Adc_mV( &Inputs_cfg_pst[g_CalibInput_select].med_mV_ui16 ); break;
+      case 5:  md_ChangeUInt16_Adc_mV( &Inputs_cfg_pst[g_CalibInput_select].max_mV_ui16 ); break;
       default: break;
    }
 }
@@ -438,7 +438,7 @@ void Update_ShowInputs( )
    int val;
    for( int i=0 ; i<NB_INPUTS ; i++ )
    {
-      val =  Inputs_pst[i].val_ft * 100.0f;
+      val =  Inputs_var_pst[i].val_ft * 100.0f;
       sprintf(buf, mStrValue3Pct, val );
 
       if( i&1 ) // if odd
