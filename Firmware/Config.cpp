@@ -25,26 +25,26 @@ int SaveConfigToEEPROM()
    pBlock = (byte*)Inputs_cfg_pst;
    for( int i = 0; i < (int) sizeof(Inputs_cfg_pst); i++ )
    {
-      EEPROM.write(EE_Addr++, pBlock[i]);
+      EEPROM.update(EE_Addr++, pBlock[i]);
    }
 
    pBlock = (byte*)Mixers_pst;
    for( int i = 0; i < (int) sizeof(Mixers_pst); i++ )
    {
-      EEPROM.write(EE_Addr++, pBlock[i]);
+      EEPROM.update(EE_Addr++, pBlock[i]);
    }
 
    pBlock = (byte*)Servos_pst;
    for( int i = 0; i < (int) sizeof(Servos_pst); i++ )
    {
-      EEPROM.write(EE_Addr++, pBlock[i]);
+      EEPROM.update(EE_Addr++, pBlock[i]);
    }
 
    // compute and write Crc
    crc8 = CRC::crc8x(crc8, pBlock, sizeof(Inputs_cfg_pst));
    crc8 = CRC::crc8x(crc8, pBlock, sizeof(Mixers_pst));
    crc8 = CRC::crc8x(crc8, pBlock, sizeof(Servos_pst));
-   EEPROM.write(EE_Addr++, crc8);
+   EEPROM.update(EE_Addr++, crc8);
 
    return 0;
 }
