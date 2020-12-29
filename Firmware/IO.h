@@ -108,3 +108,4 @@ void IO_ReadButtons();
 void IO_InputsProcess(void);
 void IO_MixersProcess(void);
 void IO_ServosProcess(void);
+void IO_PpmSetChannels(void);

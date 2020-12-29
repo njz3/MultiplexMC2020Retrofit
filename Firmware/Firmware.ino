@@ -66,7 +66,7 @@ void setup() {
 
 
 void loop() {
-   //Task_Adc2Ppm(); //re;oved from here: done in interuption context
+   //Task_Adc2Ppm(); //removed from here: done in interuption context
    IO_ReadButtons();
    ProcessGUI();
 }
@@ -82,5 +82,6 @@ void Task_Adc2Ppm(void)
    IO_InputsProcess();
    IO_MixersProcess();
    IO_ServosProcess();
+   IO_PpmSetChannels();
 }
 
