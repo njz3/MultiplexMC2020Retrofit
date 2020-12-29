@@ -3,6 +3,7 @@
 #include "Display.h"
 #include "RC_PPMEncoder.h"
 #include "Resources.h"
+#include "Config.h"
 
 
 int currentEditLine = 0;
@@ -319,7 +320,7 @@ void EditLineCursor( int min, int max )
       Body.Print(" ");
       currentEditLine += 1;
    }
-   if (currentEditLine > max)
+   if (currentEditLine < min || max < currentEditLine ) // if out of range reinit to min
    {
       currentEditLine = min;
    }
@@ -485,6 +486,43 @@ void Update_ShowServos( )
    }
 }
 
+void MakeDisplay_ShowSetting( )
+{
+   Body.Delete();
+   Body.Lines[0] = (display_line*)new display_line( 0, " Setting" );
+   Body.Lines[1] = (display_line*)new display_line( 1, "  Mem0 Load" );
+   Body.Lines[2] = (display_line*)new display_line( 2, "  Mem0 Save" );
+}
+
+void Edit_Setting( )
+{
+   switch( currentEditLine )
+   {
+      case 1:
+         if( IS_PUSHED(BUTTONS_ID::BTN_PLUS) )
+         {
+            Display.setCursor( 12, currentEditLine*2 );
+            if( 0 == Config::LoadConfigFromEEPROM() )
+               Display.print("Ok");
+            else
+               Display.print("Nok");
+         }
+         break;
+
+      case 2:
+         if( IS_PUSHED(BUTTONS_ID::BTN_PLUS) )
+         {
+            Config::SaveConfigToEEPROM();
+            Display.setCursor( 12, currentEditLine*2 );
+            Display.print("Done");
+         }
+         break;
+
+      default:
+         break;
+   }
+}
+
 
 enum PAGES_en : uint8_t
 {
@@ -495,6 +533,7 @@ enum PAGES_en : uint8_t
    PAGE_CALIB_INPUTS,
    PAGE_CALIB_SERVOS,
    PAGE_CALIB_MIXERS,
+   PAGE_SETTING,
    PAGE_MAX
 };
 
@@ -537,6 +576,10 @@ void ProcessGUI()
          case PAGE_CALIB_MIXERS:
             g_CalibMixer_select=0;
             MakeDisplay_CalibMixer();
+            break;
+
+         case PAGE_SETTING:
+            MakeDisplay_ShowSetting();
             break;
       }
       currentEditLine = 0;
@@ -595,6 +638,11 @@ void ProcessGUI()
             Edit_CalibMixer();
          }
          EditLineCursor(0,5);
+         break;
+
+      case PAGE_SETTING:
+         Edit_Setting();
+         EditLineCursor(1,2);
          break;
    }
 

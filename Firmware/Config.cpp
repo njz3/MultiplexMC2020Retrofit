@@ -4,6 +4,7 @@
 #include "Config.h"
 #include <EEPROM.h>
 #include "CRC.h"
+#include "IO.h"
 
 namespace Config {
 
@@ -12,48 +13,102 @@ EEPROM_CONFIG ConfigFile;
 
 int SaveConfigToEEPROM()
 {
-#if 0
-  if (EEPROM.length()<sizeof(EEPROM_CONFIG)) {
-    return -1;
-  }
-  // Pointer to record
-  byte* pBlock = (byte*)&ConfigFile;
-  // Compute CRC8 to detect wrong eeprom data
-  byte crc8 = CRC::crc8x(0, pBlock+1, sizeof(EEPROM_CONFIG)-1);
-  // Update CRC in record
-  ConfigFile.CRC8 = crc8;
-  // Write record to EEPROM
-  for (int i = 0 ; i < (int)sizeof(EEPROM_CONFIG); i++) {
-    EEPROM.write(i, pBlock[i]);
-  }
-#endif
-  return 1;
+   byte* pBlock;       // Pointer to data to be written
+   int EE_Addr = 0;    // EEPROM Address to be written
+   byte crc8 = 0xFF;
+
+   /* TODO Check size*/
+  //if (EEPROM.length()<sizeof(Inputs_cfg_pst)) {
+  //  return -1;
+  //}
+
+   pBlock = (byte*)Inputs_cfg_pst;
+   for( int i = 0; i < (int) sizeof(Inputs_cfg_pst); i++ )
+   {
+      EEPROM.write(EE_Addr++, pBlock[i]);
+   }
+
+   pBlock = (byte*)Mixers_pst;
+   for( int i = 0; i < (int) sizeof(Mixers_pst); i++ )
+   {
+      EEPROM.write(EE_Addr++, pBlock[i]);
+   }
+
+   pBlock = (byte*)Servos_pst;
+   for( int i = 0; i < (int) sizeof(Servos_pst); i++ )
+   {
+      EEPROM.write(EE_Addr++, pBlock[i]);
+   }
+
+   // compute and write Crc
+   crc8 = CRC::crc8x(crc8, pBlock, sizeof(Inputs_cfg_pst));
+   crc8 = CRC::crc8x(crc8, pBlock, sizeof(Mixers_pst));
+   crc8 = CRC::crc8x(crc8, pBlock, sizeof(Servos_pst));
+   EEPROM.write(EE_Addr++, crc8);
+
+   return 0;
 }
 
 int LoadConfigFromEEPROM()
 {
-#if 0
-  if (EEPROM.length()<sizeof(EEPROM_CONFIG)) {
-    return -1;
-  }
-  // Pointer to a new record on MCU stack
-  EEPROM_CONFIG newCfg;
-  byte* pBlock = (byte*)&newCfg;
-  // Read new record from EEPROM
-  for (int i = 0 ; i < (int)sizeof(EEPROM_CONFIG); i++) {
-    pBlock[i] = EEPROM.read(i);
-  }
-  // Compute CRC8 to detect wrong eeprom data
-  byte crc8 = CRC::crc8x(0, pBlock+1, sizeof(EEPROM_CONFIG)-1);
-  // Check CRC match?
-  if (crc8 != newCfg.CRC8) {
-    // Wrong CRC
-    return -2;
-  }
-  // Ok, store new config
-  ConfigFile = newCfg;
-#endif
-  return 1;
+   byte *pBlock;       // Pointer
+   int EE_Addr = 0;    // EEPROM Address to be read
+   byte crc8 = 0xFF;
+
+   // temporary variables to check crc (could be avoided if we read twice the EEPROM)
+   input_cfg_tst Inputs_cfg_temp_pst[NB_INPUTS];
+   mixers_tst Mixers_temp_pst[NB_MIXERS];
+   servos_tst Servos_temp_pst[NB_SERVOS];
+
+
+   /* TODO Check size*/
+   //if (EEPROM.length()<sizeof(EEPROM_CONFIG)) {
+   //  return -1;
+   //}
+
+   // Read new record from EEPROM
+   pBlock = (byte*)Inputs_cfg_temp_pst;
+   for( int i = 0; i < (int) sizeof(Inputs_cfg_temp_pst); i++ )
+   {
+      pBlock[i] = EEPROM.read(EE_Addr++);
+   }
+
+   pBlock = (byte*)Mixers_temp_pst;
+   for( int i = 0; i < (int) sizeof(Mixers_temp_pst); i++ )
+   {
+      pBlock[i] = EEPROM.read(EE_Addr++);
+   }
+
+   pBlock = (byte*)Servos_temp_pst;
+   for( int i = 0; i < (int) sizeof(Servos_temp_pst); i++ )
+   {
+      pBlock[i] = EEPROM.read(EE_Addr++);
+   }
+
+
+   // Compute CRC8 to detect wrong eeprom data
+   crc8 = CRC::crc8x(crc8, pBlock, sizeof(Inputs_cfg_temp_pst) );
+   crc8 = CRC::crc8x(crc8, pBlock, sizeof(Mixers_temp_pst) );
+   crc8 = CRC::crc8x(crc8, pBlock, sizeof(Servos_temp_pst) );
+
+   // Check CRC match?
+   if( crc8 != EEPROM.read(EE_Addr++) )
+   {
+      // Wrong CRC
+      return -2;
+   }
+
+   // Ok, store new config
+   for( int i = 0; i < NB_INPUTS; i++ )
+      Inputs_cfg_pst[i] = Inputs_cfg_temp_pst[i];
+
+   for( int i = 0; i < NB_MIXERS; i++ )
+      Mixers_pst[i] = Mixers_temp_pst[i];
+
+   for( int i = 0; i < NB_SERVOS; i++ )
+      Servos_pst[i] = Servos_temp_pst[i];
+
+   return 0;
 }
 
 void ResetConfig()
