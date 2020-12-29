@@ -6,16 +6,16 @@ input_var_tst Inputs_var_pst[NB_INPUTS] = {0};
 input_cfg_tst Inputs_cfg_pst[NB_INPUTS] = {  // pst = pointer to structure
          /* pin,   min_mV, med_mV, max_mV, */
   /*0*/  { VPIN1,      0,      0,      0 },  /**< constant                               */
-  /*1*/  { A0,      1001,   2500,   4000 },  /**< Stick Right Horizontal (Ailerons)      */
-  /*2*/  { A1,      1002,   2500,   4000 },  /**< Stick Left  Vertical   (Profondeur)    */
-  /*3*/  { A2,      1003,   2500,   4000 },  /**< Stick Left  Horizontal (Derive)        */
-  /*4*/  { A3,      1004,   2500,   4000 },  /**< Stick Right Vertical   (Gaz)           */
-  /*5*/  { A4,      1005,   2500,   4000 },  /**< Trim Right Horizontal (Ailerons)       */
-  /*6*/  { A5,      1006,   2500,   4000 },  /**< Trim Left  Vertical   (Profondeur)     */
-  /*7*/  { A6,      1007,   2500,   4000 },  /**< Trim Left  Horizontal (Derive)         */
-  /*8*/  { A7,      1008,   2500,   4000 },  /**< Trim Right Vertical   (Gaz)            */
-  /*9*/  { A8,      1009,   2500,   4000 },  /**< Aux 1  */
-  /*10*/ { A9,      1010,   2500,   4000 }   /**< Aux 2  */
+  /*1*/  { A0,        10,   2500,   4990 },  /**< Stick Right Horizontal (Ailerons)      */
+  /*2*/  { A1,        10,   2500,   4990 },  /**< Stick Left  Vertical   (Profondeur)    */
+  /*3*/  { A2,        10,   2500,   4990 },  /**< Stick Left  Horizontal (Derive)        */
+  /*4*/  { A3,        10,   2500,   4990 },  /**< Stick Right Vertical   (Gaz)           */
+  /*5*/  { A4,        10,   2500,   4990 },  /**< Trim Right Horizontal (Ailerons)       */
+  /*6*/  { A5,        10,   2500,   4990 },  /**< Trim Left  Vertical   (Profondeur)     */
+  /*7*/  { A6,        10,   2500,   4990 },  /**< Trim Left  Horizontal (Derive)         */
+  /*8*/  { A7,        10,   2500,   4990 },  /**< Trim Right Vertical   (Gaz)            */
+  /*9*/  { A8,        10,   2500,   4990 },  /**< Aux 1  */
+  /*10*/ { A9,        10,   2500,   4990 }   /**< Aux 2  */
 };
 
 mixers_tst Mixers_pst[NB_MIXERS]={
@@ -161,7 +161,7 @@ void IO_MixersProcess(void)
    {
       if( Mixers_pst[i].valid_ui8 == validity_never_em ) /* TODO, only the never case is handled for now */
       {
-         break; // skip
+         continue; // skip
       }
       else
       {
@@ -169,6 +169,7 @@ void IO_MixersProcess(void)
       }
 
       // get related input
+      // TODO check range of in_idx
       l_In_ft = Inputs_var_pst[Mixers_pst[i].in_idx_ui8].val_ft;
 
       // apply curve
@@ -192,6 +193,7 @@ void IO_MixersProcess(void)
       l_Out_ft /= 100.0f;
 
       // Add mixer result to the requested output
+      // TODO check range of out_idx
       Outputs_pft[Mixers_pst[i].out_idx_ui8] += l_Out_ft;
 
       if(Outputs_pft[Mixers_pst[i].out_idx_ui8] > +1.0f)
@@ -254,7 +256,7 @@ float m_IO_ExpoCurve(float f_In, float f_Expo)
    float retVal;
 
    if( f_In > +1.0f ) f_In = +1.0f;
-   if( f_In > -1.0f ) f_In = -1.0f;
+   if( f_In < -1.0f ) f_In = -1.0f;
 
    if( f_In > 0.0f )
       retVal =         pow(        f_In, abs(f_Expo) );
