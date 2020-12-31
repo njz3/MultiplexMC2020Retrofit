@@ -11,10 +11,20 @@ int currentEditLine = 0;
 int currentDisplayValuesPage = 0;
 int currentDisplayValuesMode = 0;
 
+typedef char Name_Type[8];
+
+Name_Type Inputs_Names[NB_INPUTS]={
+      "V0",
+      "M1","M2","M3","M4",
+      "T1","T2","T3","T4",
+      "A5","A6"
+};
+
 
 #define md_ChangeUInt16_Adc_mV(pVal)      ChangeUInt16(pVal, gd_STEP_TUNING_Up_mV, gd_STEP_TUNING_Down_mV, gd_MIN_mV, gd_MAX_mV)
 #define md_ChangeUInt16_us(pVal)          ChangeUInt16(pVal, gd_STEP_TUNING_Up_us, gd_STEP_TUNING_Down_us, gd_MIN_us, gd_MAX_us)
 #define md_ChangeUInt16_Index(pVal,max)   ChangeUInt16(pVal, 1, 1, 0, max)
+#define md_ChangeUInt8_Index( pVal,max)   ChangeUInt8( pVal, 1,    0, max)
 
 bool ChangeUInt16(uint16_t *pVal, uint16_t stp_up, uint16_t stp_down, uint16_t min, uint16_t max) {
    bool edited = false;
@@ -197,6 +207,27 @@ struct display_line_uint8 : public display_line
   };
 };
 
+struct display_line_uint8_names : public display_line
+{
+  public:
+  const char *format;
+  uint8_t *pval;
+  Name_Type *names;
+
+  display_line_uint8_names(const byte row, const char *fxd, const char *fmt, uint8_t *pval, Name_Type *names):
+     display_line(row, fxd), format(fmt), pval(pval), names(names) { };
+  virtual ~display_line_uint8_names(){ };
+
+  virtual void refresh_notfixed() const override  {
+    if (format!=NULL) {
+      display_line::refresh_notfixed();
+      char buf[20];
+      sprintf(buf, format, names[*pval]);
+      Display.print(buf);
+    }
+  };
+};
+
 struct display_line_int8 : public display_line
 {
   public:
@@ -328,53 +359,53 @@ void EditLineCursor( int min, int max )
    Body.Print(">");
 }
 
-uint16_t g_CalibInput_select;
+uint8_t g_CalibInput_select_ui8;
 uint16_t g_ProcessGUI_Cnt=0;
 void MakeDisplay_CalibInput( )
 {
    Body.Delete();
-   Body.Lines[0] = (display_line*)new display_line_uint16(  0, " Calib. Input "  , mStrValue2d , &g_CalibInput_select);
-   Body.Lines[1] = (display_line*)new display_line_ft100(   1, "   Val= ", mStrValue3Pct, &Inputs_var_pst[g_CalibInput_select].val_ft);
-   Body.Lines[2] = (display_line*)new display_line_uint16(  2, "   Val= ", mStrValue4mV,  &Inputs_var_pst[g_CalibInput_select].adc_mV_ui16);
-   Body.Lines[3] = (display_line*)new display_line_uint16(  3, "   Min= ", mStrValue4mV,  &Inputs_cfg_pst[g_CalibInput_select].min_mV_ui16);
-   Body.Lines[4] = (display_line*)new display_line_uint16(  4, "   Med= ", mStrValue4mV,  &Inputs_cfg_pst[g_CalibInput_select].med_mV_ui16);
-   Body.Lines[5] = (display_line*)new display_line_uint16(  5, "   Max= ", mStrValue4mV,  &Inputs_cfg_pst[g_CalibInput_select].max_mV_ui16);
-   Body.Lines[6] = (display_line*)new display_line_uint16(  6, "          ", mStrValue05d,  &g_ProcessGUI_Cnt);
+   Body.Lines[0] = (display_line*)new display_line_uint8_names( 0, " Calib. Input " , mStr2Char , &g_CalibInput_select_ui8, Inputs_Names );
+   Body.Lines[1] = (display_line*)new display_line_ft100(       1, "   Val= ", mStrValue3Pct, &Inputs_var_pst[g_CalibInput_select_ui8].val_ft);
+   Body.Lines[2] = (display_line*)new display_line_uint16(      2, "   Val= ", mStrValue4mV,  &Inputs_var_pst[g_CalibInput_select_ui8].adc_mV_ui16);
+   Body.Lines[3] = (display_line*)new display_line_uint16(      3, "   Min= ", mStrValue4mV,  &Inputs_cfg_pst[g_CalibInput_select_ui8].min_mV_ui16);
+   Body.Lines[4] = (display_line*)new display_line_uint16(      4, "   Med= ", mStrValue4mV,  &Inputs_cfg_pst[g_CalibInput_select_ui8].med_mV_ui16);
+   Body.Lines[5] = (display_line*)new display_line_uint16(      5, "   Max= ", mStrValue4mV,  &Inputs_cfg_pst[g_CalibInput_select_ui8].max_mV_ui16);
+   Body.Lines[6] = (display_line*)new display_line_uint16(      6, "        ", mStrValue05d,  &g_ProcessGUI_Cnt);
 }
 
 uint16_t g_CalibServo_select;
 void MakeDisplay_CalibServo( )
 {
    Body.Delete();
-   Body.Lines[0] = (display_line*)new display_line_uint16(  0, " Calib. Servo "  , mStrValue2d , &g_CalibServo_select);
-   Body.Lines[1] = (display_line*)new display_line_uint16(  1, "   Val= ", mStrValue4us,  &Servos_us_pui16[g_CalibServo_select]);
-   Body.Lines[2] = (display_line*)new display_line_uint16(  2, "   Min= ", mStrValue4us, &Servos_pst[g_CalibServo_select].min_us_ui16);
-   Body.Lines[3] = (display_line*)new display_line_uint16(  3, "   Med= ", mStrValue4us, &Servos_pst[g_CalibServo_select].med_us_ui16);
-   Body.Lines[4] = (display_line*)new display_line_uint16(  4, "   Max= ", mStrValue4us, &Servos_pst[g_CalibServo_select].max_us_ui16);
-   Body.Lines[5] = (display_line*)new display_line_uint8(   5, "   SrcOut = ", mStrValue2d, &Servos_pst[g_CalibServo_select].out_idx_ui8);
-   Body.Lines[6] = (display_line*)new display_line_uint8(   6, "   TrInput= ", mStrValue2d, &Servos_pst[g_CalibServo_select].trim_idx_ui8);
-   Body.Lines[7] = (display_line*)new display_line_int8(    7, "   TrCoef=", mStrValue3Pct, &Servos_pst[g_CalibServo_select].trim_coef_si8);
+   Body.Lines[0] = (display_line*)new display_line_uint16(      0, " Calib. Servo "  , mStrValue2d , &g_CalibServo_select);
+   Body.Lines[1] = (display_line*)new display_line_uint16(      1, "   Val= ", mStrValue4us,  &Servos_us_pui16[g_CalibServo_select]);
+   Body.Lines[2] = (display_line*)new display_line_uint16(      2, "   Min= ", mStrValue4us, &Servos_pst[g_CalibServo_select].min_us_ui16);
+   Body.Lines[3] = (display_line*)new display_line_uint16(      3, "   Med= ", mStrValue4us, &Servos_pst[g_CalibServo_select].med_us_ui16);
+   Body.Lines[4] = (display_line*)new display_line_uint16(      4, "   Max= ", mStrValue4us, &Servos_pst[g_CalibServo_select].max_us_ui16);
+   Body.Lines[5] = (display_line*)new display_line_uint8(       5, "   SrcOut = ", mStrValue2d, &Servos_pst[g_CalibServo_select].out_idx_ui8);
+   Body.Lines[6] = (display_line*)new display_line_uint8_names( 6, "   TrInput= ", mStr2Char,   &Servos_pst[g_CalibServo_select].trim_idx_ui8, Inputs_Names );
+   Body.Lines[7] = (display_line*)new display_line_int8(        7, "   TrCoef=", mStrValue3Pct, &Servos_pst[g_CalibServo_select].trim_coef_si8);
 }
 
 uint16_t g_CalibMixer_select;
 void MakeDisplay_CalibMixer( )
 {
    Body.Delete();
-   Body.Lines[0] = (display_line*)new display_line_uint16(  0, " Calib. Mixer "  , mStrValue2d , &g_CalibMixer_select);
-   Body.Lines[1] = (display_line*)new display_line_uint8(   1, "   Input = ", mStrValue2d,   &Mixers_pst[g_CalibMixer_select].in_idx_ui8);
-   Body.Lines[2] = (display_line*)new display_line_uint8(   2, "   Courbe= ", mStrValue2d,   &Mixers_pst[g_CalibMixer_select].curve_ui8);
-   Body.Lines[3] = (display_line*)new display_line_int8(    3, "   Coef  = ", mStrValue3Pct, &Mixers_pst[g_CalibMixer_select].coef_si8);
-   Body.Lines[4] = (display_line*)new display_line_uint8(   4, "   Valid = ", mStrValue2d,   &Mixers_pst[g_CalibMixer_select].valid_ui8);
-   Body.Lines[5] = (display_line*)new display_line_uint8(   5, "   Output= ", mStrValue2d,   &Mixers_pst[g_CalibMixer_select].out_idx_ui8);
+   Body.Lines[0] = (display_line*)new display_line_uint16(      0, " Calib. Mixer "  , mStrValue2d , &g_CalibMixer_select);
+   Body.Lines[1] = (display_line*)new display_line_uint8_names( 1, "   Input = ", mStr2Char,   &Mixers_pst[g_CalibMixer_select].in_idx_ui8, Inputs_Names );
+   Body.Lines[2] = (display_line*)new display_line_uint8(       2, "   Courbe= ", mStrValue2d,   &Mixers_pst[g_CalibMixer_select].curve_ui8);
+   Body.Lines[3] = (display_line*)new display_line_int8(        3, "   Coef  = ", mStrValue3Pct, &Mixers_pst[g_CalibMixer_select].coef_si8);
+   Body.Lines[4] = (display_line*)new display_line_uint8(       4, "   Valid = ", mStrValue2d,   &Mixers_pst[g_CalibMixer_select].valid_ui8);
+   Body.Lines[5] = (display_line*)new display_line_uint8(       5, "   Output= ", mStrValue2d,   &Mixers_pst[g_CalibMixer_select].out_idx_ui8);
 }
 
 void Edit_CalibInput( )
 {
    switch( currentEditLine )
    {
-      case 3:  md_ChangeUInt16_Adc_mV( &Inputs_cfg_pst[g_CalibInput_select].min_mV_ui16 ); break;
-      case 4:  md_ChangeUInt16_Adc_mV( &Inputs_cfg_pst[g_CalibInput_select].med_mV_ui16 ); break;
-      case 5:  md_ChangeUInt16_Adc_mV( &Inputs_cfg_pst[g_CalibInput_select].max_mV_ui16 ); break;
+      case 3:  md_ChangeUInt16_Adc_mV( &Inputs_cfg_pst[g_CalibInput_select_ui8].min_mV_ui16 ); break;
+      case 4:  md_ChangeUInt16_Adc_mV( &Inputs_cfg_pst[g_CalibInput_select_ui8].med_mV_ui16 ); break;
+      case 5:  md_ChangeUInt16_Adc_mV( &Inputs_cfg_pst[g_CalibInput_select_ui8].max_mV_ui16 ); break;
       default: break;
    }
 }
@@ -405,19 +436,29 @@ void Edit_CalibMixer( )
    }
 }
 
-void MakeDisplay_ShowInputsOutputs( int io )
+void MakeDisplay_ShowInputs( )
 {
    Body.Delete();
-   if( io == 0 )
-      Body.Lines[0] = (display_line*)new display_line( 0, "Affich. Outputs" );
-   else
-      Body.Lines[0] = (display_line*)new display_line( 0, "Affich. Inputs" );
-   Body.Lines[1] = (display_line*)new display_line( 1, " 0:....  1:...." );
-   Body.Lines[2] = (display_line*)new display_line( 2, " 2:....  3:...." );
-   Body.Lines[3] = (display_line*)new display_line( 3, " 4:....  5:...." );
-   Body.Lines[4] = (display_line*)new display_line( 4, " 6:....  7:...." );
-   Body.Lines[5] = (display_line*)new display_line( 5, " 8:....  9:...." );
-   Body.Lines[6] = (display_line*)new display_line( 6, " A:....  B:...." );
+   Body.Lines[0] = (display_line*)new display_line( 0, "Affich. Inputs" );
+
+   Body.Lines[1] = (display_line*)new display_line( 1, "V0....% M1....%" );
+   Body.Lines[2] = (display_line*)new display_line( 2, "M2....% M3....%" );
+   Body.Lines[3] = (display_line*)new display_line( 3, "M4....% T1....%" );
+   Body.Lines[4] = (display_line*)new display_line( 4, "T2....% T3....%" );
+   Body.Lines[5] = (display_line*)new display_line( 5, "T4....% A5....%" );
+   Body.Lines[6] = (display_line*)new display_line( 6, "A6....%" );
+}
+
+void MakeDisplay_ShowOutputs( )
+{
+   Body.Delete();
+   Body.Lines[0] = (display_line*)new display_line( 0, "Affich. MixOuts" );
+   Body.Lines[1] = (display_line*)new display_line( 1, "xA....% xB....%" );
+   Body.Lines[2] = (display_line*)new display_line( 2, "xC....% xD....%" );
+   Body.Lines[3] = (display_line*)new display_line( 3, "xE....% xF....%" );
+   Body.Lines[4] = (display_line*)new display_line( 4, "xG....% xH....%" );
+   Body.Lines[5] = (display_line*)new display_line( 5, "xI....% xJ....%" );
+   Body.Lines[6] = (display_line*)new display_line( 6, "xK....% xL....%" );
 }
 
 void MakeDisplay_ShowServos( )
@@ -443,9 +484,9 @@ void Update_ShowInputs( )
       sprintf(buf, mStrValue3Pct, val );
 
       if( i&1 ) // if odd
-         Display.setCursor( 11, (i/2)*2+2 );
+         Display.setCursor( 8+2, (i/2)*2+2 );
       else // if even
-         Display.setCursor(  3, (i/2)*2+2 );
+         Display.setCursor(  2, (i/2)*2+2 );
 
       Display.print(buf);
    }
@@ -461,9 +502,9 @@ void Update_ShowOutputs( )
       sprintf(buf, mStrValue3Pct, val);
 
       if( i&1 ) // if odd
-         Display.setCursor( 11, (i/2)*2+2 );
+         Display.setCursor( 8+2, (i/2)*2+2 );
       else // if even
-         Display.setCursor(  3, (i/2)*2+2 );
+         Display.setCursor(  2, (i/2)*2+2 );
 
       Display.print(buf);
    }
@@ -552,11 +593,11 @@ void ProcessGUI()
       switch( g_Page )
       {
          case PAGE_SHOW_INPUTS:
-            MakeDisplay_ShowInputsOutputs(1);
+            MakeDisplay_ShowInputs();
             break;
 
          case PAGE_SHOW_OUTPUTS:
-            MakeDisplay_ShowInputsOutputs(0);
+            MakeDisplay_ShowOutputs();
             break;
 
          case PAGE_SHOW_SERVOS:
@@ -564,7 +605,7 @@ void ProcessGUI()
             break;
 
          case PAGE_CALIB_INPUTS:
-            g_CalibInput_select = 0;
+            g_CalibInput_select_ui8 = 0;
             MakeDisplay_CalibInput();
             break;
 
@@ -604,7 +645,7 @@ void ProcessGUI()
       case PAGE_CALIB_INPUTS:
          if( currentEditLine == 0 ) /* if the 1st line */
          {
-            if( md_ChangeUInt16_Index( &g_CalibInput_select , NB_INPUTS-1) )
+            if( md_ChangeUInt8_Index( &g_CalibInput_select_ui8 , NB_INPUTS-1) )
                MakeDisplay_CalibInput();
          }
          else

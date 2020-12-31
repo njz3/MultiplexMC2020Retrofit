@@ -185,7 +185,7 @@ void IO_MixersProcess(void)
 
          case curve_abs_em:       l_Out_ft = abs(l_In_ft);                  break;
          case curve_positive_em:  l_Out_ft = ( l_In_ft<0 ? 0 : l_In_ft );   break;
-         case curve_negative_em:  l_Out_ft = ( l_In_ft<0 ? l_In_ft : 0 )    break;
+         case curve_negative_em:  l_Out_ft = ( l_In_ft<0 ? l_In_ft : 0 );   break;
 
          case curve_perso1_em: l_Out_ft = l_In_ft;                            break;
          case curve_perso2_em: l_Out_ft = l_In_ft;                            break;

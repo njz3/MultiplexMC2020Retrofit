@@ -94,7 +94,6 @@ extern float Outputs_pft[NB_OUTPUTS];
 extern uint16_t   Servos_us_pui16[NB_SERVOS];
 extern servos_tst Servos_pst[NB_SERVOS];
 
-
 extern uint16_t ButtonsPressed;
 extern uint16_t ButtonsPushed;
 extern uint16_t ButtonsReleased;

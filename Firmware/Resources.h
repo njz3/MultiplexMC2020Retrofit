@@ -20,6 +20,7 @@ RSTR mSaveConfig;
 
 RSTR mFooterValues;
 RSTR mStrValue2d;
+RSTR mStr2Char;
 RSTR mStrValue05d;
 RSTR mStrValue3Pct;
 RSTR mStrValue4mV;
