@@ -14,10 +14,10 @@ int currentDisplayValuesMode = 0;
 typedef char Name_Type[6]; // caution /0 takes one char  (so max string is 5char long)
 
 Name_Type Inputs_Names[NB_INPUTS]={
-      "V0",
       "M1","M2","M3","M4",
       "T1","T2","T3","T4",
       "A5","A6"
+      "V1",
 };
 
 Name_Type Outputs_Names[NB_OUTPUTS]={
@@ -39,6 +39,10 @@ Name_Type Curves_Names[curve_max_em]={
       "EXP1", "EXP2", "EXP3", "EXP4", "EXP5",
       "ABS ", "POS ", "NEG ",
       "PER1", "PER2", "PER3", "PER4"
+};
+
+Name_Type Valid_Names[validity_max_em]={
+      "JAMS","TJRS", "SwA0", "SwA1", "SwB0", "SwB1"
 };
 
 
@@ -412,11 +416,11 @@ uint8_t g_CalibMixer_select_ui8;
 void MakeDisplay_CalibMixer( )
 {
    Body.Delete();
-   Body.Lines[0] = (display_line*)new display_line_uint8_names( 0, " Calib Mixer " , mStr2Char, &g_CalibMixer_select_ui8 , Mixers_Names);
+   Body.Lines[0] = (display_line*)new display_line_uint8_names( 0, " Calib Mixer " , mStr2Char,  &g_CalibMixer_select_ui8 , Mixers_Names);
    Body.Lines[1] = (display_line*)new display_line_uint8_names( 1, "   Input = ", mStr2Char,     &Mixers_pst[g_CalibMixer_select_ui8].in_idx_ui8, Inputs_Names );
    Body.Lines[2] = (display_line*)new display_line_uint8_names( 2, "   Courbe= ", mStr2Char,     &Mixers_pst[g_CalibMixer_select_ui8].curve_ui8 , Curves_Names );
    Body.Lines[3] = (display_line*)new display_line_int8(        3, "   Coef  = ", mStrValue3Pct, &Mixers_pst[g_CalibMixer_select_ui8].coef_si8);
-   Body.Lines[4] = (display_line*)new display_line_uint8(       4, "   Valid = ", mStrValue2d,   &Mixers_pst[g_CalibMixer_select_ui8].valid_ui8);
+   Body.Lines[4] = (display_line*)new display_line_uint8_names( 4, "   Valid = ", mStr2Char,     &Mixers_pst[g_CalibMixer_select_ui8].valid_ui8, Valid_Names);
    Body.Lines[5] = (display_line*)new display_line_uint8_names( 5, "   MixOut= ", mStr2Char,     &Mixers_pst[g_CalibMixer_select_ui8].out_idx_ui8, Outputs_Names);
 }
 
@@ -462,12 +466,12 @@ void MakeDisplay_ShowInputs( )
    Body.Delete();
    Body.Lines[0] = (display_line*)new display_line( 0, "Affich. Inputs" );
 
-   Body.Lines[1] = (display_line*)new display_line( 1, "V0....% M1....%" );
-   Body.Lines[2] = (display_line*)new display_line( 2, "M2....% M3....%" );
-   Body.Lines[3] = (display_line*)new display_line( 3, "M4....% T1....%" );
-   Body.Lines[4] = (display_line*)new display_line( 4, "T2....% T3....%" );
-   Body.Lines[5] = (display_line*)new display_line( 5, "T4....% A5....%" );
-   Body.Lines[6] = (display_line*)new display_line( 6, "A6....%" );
+   Body.Lines[1] = (display_line*)new display_line( 1, "M1....% M2....%" );
+   Body.Lines[2] = (display_line*)new display_line( 2, "M3....% M4....%" );
+   Body.Lines[3] = (display_line*)new display_line( 3, "T1....% T2....%" );
+   Body.Lines[4] = (display_line*)new display_line( 4, "T3....% T4....%" );
+   Body.Lines[5] = (display_line*)new display_line( 5, "A5....% A6....%" );
+   Body.Lines[6] = (display_line*)new display_line( 6, "V1....%" );
 }
 
 void MakeDisplay_ShowOutputs( )
@@ -593,8 +597,8 @@ enum PAGES_en : uint8_t
    PAGE_SHOW_OUTPUTS,
    PAGE_SHOW_SERVOS,
    PAGE_CALIB_INPUTS,
-   PAGE_CALIB_SERVOS,
    PAGE_CALIB_MIXERS,
+   PAGE_CALIB_SERVOS,
    PAGE_SETTING,
    PAGE_MAX
 };
