@@ -18,6 +18,7 @@ input_cfg_tst Inputs_cfg_pst[NB_INPUTS] = {  // pst = pointer to structure
   /*10*/ { A9,        10,   2500,   4990 }   /**< Aux 2  */
 };
 
+
 mixers_tst Mixers_pst[NB_MIXERS]={
         /*   out,    input,  curve,          coef,   valid */
  /*0*/  {    0,      0,      curve_normal_em, +100,    validity_always_em}, /* dummy        */
@@ -181,6 +182,11 @@ void IO_MixersProcess(void)
          case curve_expo3_em:  l_Out_ft =  m_IO_ExpoCurve( l_In_ft , 2.00f ); break;
          case curve_expo4_em:  l_Out_ft =  m_IO_ExpoCurve( l_In_ft , 2.40f ); break;
          case curve_expo5_em:  l_Out_ft =  m_IO_ExpoCurve( l_In_ft , 3.00f ); break;
+
+         case curve_abs_em:       l_Out_ft = abs(l_In_ft);                  break;
+         case curve_positive_em:  l_Out_ft = ( l_In_ft<0 ? 0 : l_In_ft );   break;
+         case curve_negative_em:  l_Out_ft = ( l_In_ft<0 ? l_In_ft : 0 )    break;
+
          case curve_perso1_em: l_Out_ft = l_In_ft;                            break;
          case curve_perso2_em: l_Out_ft = l_In_ft;                            break;
          case curve_perso3_em: l_Out_ft = l_In_ft;                            break;
