@@ -10,6 +10,8 @@ namespace Config {
 
 EEPROM_CONFIG ConfigFile;
 
+byte const g_VersionTag = 0x00;
+
 
 int SaveConfigToEEPROM()
 {
@@ -21,6 +23,9 @@ int SaveConfigToEEPROM()
   //if (EEPROM.length()<sizeof(Inputs_cfg_pst)) {
   //  return -1;
   //}
+
+
+   EEPROM.update(EE_Addr++,g_VersionTag); // Version tag
 
    pBlock = (byte*)Inputs_cfg_pst;
    for( int i = 0; i < (int) sizeof(Inputs_cfg_pst); i++ )
@@ -41,6 +46,7 @@ int SaveConfigToEEPROM()
    }
 
    // compute and write Crc
+   crc8 = CRC::crc8x(crc8, &g_VersionTag, 1);
    crc8 = CRC::crc8x(crc8, pBlock, sizeof(Inputs_cfg_pst));
    crc8 = CRC::crc8x(crc8, pBlock, sizeof(Mixers_pst));
    crc8 = CRC::crc8x(crc8, pBlock, sizeof(Servos_pst));
@@ -56,6 +62,7 @@ int LoadConfigFromEEPROM()
    byte crc8 = 0xFF;
 
    // temporary variables to check crc (could be avoided if we read twice the EEPROM)
+   byte l_VersionTag;
    input_cfg_tst Inputs_cfg_temp_pst[NB_INPUTS];
    mixers_tst Mixers_temp_pst[NB_MIXERS];
    servos_tst Servos_temp_pst[NB_SERVOS];
@@ -65,6 +72,8 @@ int LoadConfigFromEEPROM()
    //if (EEPROM.length()<sizeof(EEPROM_CONFIG)) {
    //  return -1;
    //}
+
+   l_VersionTag = EEPROM.read(EE_Addr++);
 
    // Read new record from EEPROM
    pBlock = (byte*)Inputs_cfg_temp_pst;
@@ -87,14 +96,18 @@ int LoadConfigFromEEPROM()
 
 
    // Compute CRC8 to detect wrong eeprom data
+   crc8 = CRC::crc8x(crc8, &l_VersionTag, 1);
    crc8 = CRC::crc8x(crc8, pBlock, sizeof(Inputs_cfg_temp_pst) );
    crc8 = CRC::crc8x(crc8, pBlock, sizeof(Mixers_temp_pst) );
    crc8 = CRC::crc8x(crc8, pBlock, sizeof(Servos_temp_pst) );
 
-   // Check CRC match?
-   if( crc8 != EEPROM.read(EE_Addr++) )
+   if( l_VersionTag != g_VersionTag )  // If Wrong Version
    {
-      // Wrong CRC
+      return -3;
+   }
+
+   if( crc8 != EEPROM.read(EE_Addr++) )  // If Wrong CRC
+   {
       return -2;
    }
 
