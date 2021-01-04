@@ -21,18 +21,18 @@ input_cfg_tst Inputs_cfg_pst[NB_INPUTS] = {  // pst = pointer to structure
 
 mixers_tst Mixers_pst[NB_MIXERS]={
         /*   out,    input,  curve,          coef,   valid */
- /*0*/  {    0,      0,      curve_expo3_em,   +100,    validity_always_em}, /* Ailerons     */
- /*1*/  {    1,      1,      curve_expo3_em,   +100,    validity_always_em}, /* Profondeur   */
- /*2*/  {    2,      2,      curve_expo3_em,   +100,    validity_always_em}, /* Derive       */
- /*3*/  {    3,      3,      curve_normal_em,  +100,    validity_always_em}, /* Gaz          */
- /*4*/  {    4,     10,      curve_normal_em,  +100,    validity_never_em}, /* dummy        */
- /*5*/  {    5,     10,      curve_normal_em,  +100,    validity_never_em}, /* dummy        */
- /*6*/  {    6,     10,      curve_normal_em,  +100,    validity_never_em}, /* dummy        */
- /*7*/  {    7,     10,      curve_normal_em,  +100,    validity_never_em}, /* dummy        */
- /*8*/  {    8,     10,      curve_normal_em,  +100,    validity_never_em}, /* dummy        */
- /*9*/  {    9,     10,      curve_normal_em,  +100,    validity_never_em}, /* dummy        */
- /*10*/ {    1,      0,      curve_abs_em,      -10,    validity_always_em }, /* dummy        */
- /*11*/ {    1,      3,      curve_positive_em, +50,    validity_always_em }, /* dummy        */
+ /*0*/  {    0,      0,      curve_expo3_em,   +100,    validity_always_em},  /* Ailerons     */
+ /*1*/  {    1,      1,      curve_expo3_em,   +100,    validity_always_em},  /* Profondeur   */
+ /*2*/  {    2,      2,      curve_expo3_em,   +100,    validity_always_em},  /* Derive       */
+ /*3*/  {    3,      3,      curve_normal_em,  +100,    validity_always_em},  /* Gaz          */
+ /*4*/  {    0,      0,      curve_expo3_em,    -60,    validity_SwA1_em},    /* dual rate Ailerons   100-60 = 40*/
+ /*5*/  {    1,      1,      curve_expo3_em,    -60,    validity_SwA1_em},    /* dual rate Profondeur 100-60 = 40*/
+ /*6*/  {    2,      2,      curve_expo3_em,    -60,    validity_SwA1_em},    /* dual rate Derive     100-60 = 40*/
+ /*7*/  {    7,     11,      curve_normal_em,  +100,    validity_never_em},   /* dummy        */
+ /*8*/  {    8,     11,      curve_normal_em,  +100,    validity_never_em},   /* dummy        */
+ /*9*/  {    9,     11,      curve_normal_em,  +100,    validity_never_em},   /* dummy        */
+ /*10*/ {    1,      0,      curve_abs_em,      -15,    validity_always_em }, /* Ailerons-->Profondeur */
+ /*11*/ {    1,      3,      curve_positive_em, +50,    validity_always_em }, /* Gaz->Profondeur       */
 };
 
 float Outputs_pft[NB_OUTPUTS];
@@ -131,7 +131,7 @@ void IO_InputsProcess(void)
          else //  Inputs_pst[i].adc_mV_ui16 >= Inputs_pst[i].med_mV_ui16 )
          {
             l_adc_mV_ui16 = min(Inputs_var_pst[i].adc_mV_ui16, Inputs_cfg_pst[i].max_mV_ui16);  // limit to max
-            l_dx_ft    = l_adc_mV_ui16 - Inputs_cfg_pst[i].med_mV_ui16; // always positive
+            l_dx_ft    = l_adc_mV_ui16 - Inputs_cfg_pst[i].med_mV_ui16; // always positive or equal 0
             l_fullx_ft = Inputs_cfg_pst[i].max_mV_ui16 - Inputs_cfg_pst[i].med_mV_ui16; // always positive
             Inputs_var_pst[i].val_ft = (l_dx_ft/l_fullx_ft) + (0.0f);
          }
