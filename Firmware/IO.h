@@ -2,7 +2,7 @@
 
 #include "Config.h"
 
-#define NB_CST       (1)
+#define NB_CST       (2)
 #define NB_STICKS    (4)
 #define NB_TRIMS     (4)
 #define NB_AUXS      (2)
@@ -13,7 +13,7 @@
 
 
 #define NB_INPUTS   (NB_CST+NB_STICKS+NB_TRIMS+NB_AUXS)
-#define NB_MIXERS   (12)
+#define NB_MIXERS   (16)
 #define NB_OUTPUTS  (12)
 #define NB_SERVOS   (7)
 

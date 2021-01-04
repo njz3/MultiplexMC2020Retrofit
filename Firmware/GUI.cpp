@@ -17,7 +17,7 @@ Name_Type Inputs_Names[NB_INPUTS]={
       "M1","M2","M3","M4",
       "T1","T2","T3","T4",
       "A5","A6"
-      "V1",
+      "V0","V0"
 };
 
 Name_Type Outputs_Names[NB_OUTPUTS]={

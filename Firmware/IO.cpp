@@ -5,34 +5,40 @@
 input_var_tst Inputs_var_pst[NB_INPUTS] = {0};
 input_cfg_tst Inputs_cfg_pst[NB_INPUTS] = {  // pst = pointer to structure
          /* pin,   min_mV, med_mV, max_mV, */
-  /*0*/  { A0,        10,   2500,   4990 },  /**< Stick Right Horizontal (Ailerons)      */
-  /*1*/  { A1,        10,   2500,   4990 },  /**< Stick Left  Vertical   (Profondeur)    */
-  /*2*/  { A2,        10,   2500,   4990 },  /**< Stick Left  Horizontal (Derive)        */
-  /*3*/  { A3,        10,   2500,   4990 },  /**< Stick Right Vertical   (Gaz)           */
-  /*4*/  { A4,        10,   2500,   4990 },  /**< Trim Right Horizontal (Ailerons)       */
-  /*5*/  { A5,        10,   2500,   4990 },  /**< Trim Left  Vertical   (Profondeur)     */
-  /*6*/  { A6,        10,   2500,   4990 },  /**< Trim Left  Horizontal (Derive)         */
-  /*7*/  { A7,        10,   2500,   4990 },  /**< Trim Right Vertical   (Gaz)            */
-  /*8*/  { A8,        10,   2500,   4990 },  /**< Aux 1  */
-  /*9*/  { A9,        10,   2500,   4990 },  /**< Aux 2  */
- /*10*/  { VPIN1,      0,      0,      0 },  /**< constant                               */
+ /* 0*/  { A0,        10,   2500,   4990 },  /**< Stick Right Horizontal (Ailerons)      */
+ /* 1*/  { A1,        10,   2500,   4990 },  /**< Stick Left  Vertical   (Profondeur)    */
+ /* 2*/  { A2,        10,   2500,   4990 },  /**< Stick Left  Horizontal (Derive)        */
+ /* 3*/  { A3,        10,   2500,   4990 },  /**< Stick Right Vertical   (Gaz)           */
+ /* 4*/  { A4,        10,   2500,   4990 },  /**< Trim Right Horizontal (Ailerons)       */
+ /* 5*/  { A5,        10,   2500,   4990 },  /**< Trim Left  Vertical   (Profondeur)     */
+ /* 6*/  { A6,        10,   2500,   4990 },  /**< Trim Left  Horizontal (Derive)         */
+ /* 7*/  { A7,        10,   2500,   4990 },  /**< Trim Right Vertical   (Gaz)            */
+ /* 8*/  { A8,        10,   2500,   4990 },  /**< Aux 1  */
+ /* 9*/  { A9,        10,   2500,   4990 },  /**< Aux 2  */
+ /*10*/  { VPIN0,      0,      0,      0 },  /**< constant                               */
+ /*11*/  { VPIN1,      0,      0,      0 },  /**< constant                               */
 };
 
 
 mixers_tst Mixers_pst[NB_MIXERS]={
         /*   out,    input,  curve,          coef,   valid */
- /*0*/  {    0,      0,      curve_expo3_em,   +100,    validity_always_em},  /* Ailerons     */
- /*1*/  {    1,      1,      curve_expo3_em,   +100,    validity_always_em},  /* Profondeur   */
- /*2*/  {    2,      2,      curve_expo3_em,   +100,    validity_always_em},  /* Derive       */
- /*3*/  {    3,      3,      curve_normal_em,  +100,    validity_always_em},  /* Gaz          */
- /*4*/  {    0,      0,      curve_expo3_em,    -60,    validity_SwA1_em},    /* dual rate Ailerons   100-60 = 40*/
- /*5*/  {    1,      1,      curve_expo3_em,    -60,    validity_SwA1_em},    /* dual rate Profondeur 100-60 = 40*/
- /*6*/  {    2,      2,      curve_expo3_em,    -60,    validity_SwA1_em},    /* dual rate Derive     100-60 = 40*/
- /*7*/  {    7,     11,      curve_normal_em,  +100,    validity_never_em},   /* dummy        */
- /*8*/  {    8,     11,      curve_normal_em,  +100,    validity_never_em},   /* dummy        */
- /*9*/  {    9,     11,      curve_normal_em,  +100,    validity_never_em},   /* dummy        */
- /*10*/ {    1,      0,      curve_abs_em,      -15,    validity_always_em }, /* Ailerons-->Profondeur */
- /*11*/ {    1,      3,      curve_positive_em, +50,    validity_always_em }, /* Gaz->Profondeur       */
+ /* 0*/  {    0,      0,      curve_expo3_em,   +100,    validity_always_em},  /* Ailerons     */
+ /* 1*/  {    1,      1,      curve_expo3_em,   +100,    validity_always_em},  /* Profondeur   */
+ /* 2*/  {    2,      2,      curve_expo3_em,   +100,    validity_always_em},  /* Derive       */
+ /* 3*/  {    3,      3,      curve_normal_em,  +100,    validity_always_em},  /* Gaz          */
+ /* 4*/  {    0,      0,      curve_expo3_em,    -60,    validity_SwA1_em},    /* dual rate Ailerons   100-60 = 40*/
+ /* 5*/  {    1,      1,      curve_expo3_em,    -60,    validity_SwA1_em},    /* dual rate Profondeur 100-60 = 40*/
+ /* 6*/  {    2,      2,      curve_expo3_em,    -60,    validity_SwA1_em},    /* dual rate Derive     100-60 = 40*/
+ /* 7*/  {    7,      1,      curve_perso1_em,  +100,    validity_always_em},  /* for test        */
+ /* 8*/  {    8,      1,      curve_perso4_em,  +100,    validity_always_em},  /* for test        */
+ /* 9*/  {    1,      0,      curve_abs_em,      -15,    validity_always_em }, /* Ailerons-->Profondeur */
+ /*10*/  {    1,      3,      curve_positive_em, +50,    validity_always_em }, /* Gaz->Profondeur       */
+ /*11*/  {    9,     11,      curve_normal_em,  +100,    validity_never_em},   /* dummy        */
+ /*12*/  {    9,     11,      curve_normal_em,  +100,    validity_never_em},   /* dummy        */
+ /*13*/  {    9,     11,      curve_normal_em,  +100,    validity_never_em},   /* dummy        */
+ /*14*/  {    9,     11,      curve_normal_em,  +100,    validity_never_em},   /* dummy        */
+ /*15*/  {    9,     11,      curve_normal_em,  +100,    validity_never_em},   /* dummy        */
+
 };
 
 float Outputs_pft[NB_OUTPUTS];
@@ -49,8 +55,20 @@ servos_tst Servos_pst[NB_SERVOS]={
  /*6*/   { 9,      0,            0,        1100,   1600,   2100},  /* na */
 };
 
+/* Customized curve         */
+#define CUSTOMCURVE_NBPOINT (9)
+#define CUSTOMCURVE_NBCURVE (4)
+float CustomCurve_x[CUSTOMCURVE_NBPOINT] = {  -1.00f, -0.75f, -0.50f, -0.25f,  0.00f, +0.25f, +0.50f, +0.75f, +1.00f };
+float CustomCurve[CUSTOMCURVE_NBCURVE][CUSTOMCURVE_NBPOINT] = {
+  /*   -100%    -75%    -50%    -25%      0%    +25%    +50%    +75%   +100%  */
+   {  -1.00f,  0.00f,  0.00f,  0.00f,  0.00f,  0.00f,  0.00f,  0.00f, +1.00f },
+   {  -1.00f, -0.75f, -0.50f, -0.25f,  0.00f, +0.25f, +0.50f, +0.75f, +1.00f },
+   {  -1.00f, -0.75f, -0.50f, -0.25f,  0.00f, +0.25f, +0.50f, +0.75f, +1.00f },
+   {  -1.00f, -0.80f, -0.80f, +0.10f,  0.00f, -0.10f, +0.50f, +0.75f, +1.00f } // dummy
+};
 
 float m_IO_ExpoCurve(float f_In, float f_Expo);
+float m_IO_CustomCurve(float f_In, uint8_t curve);
 
 void IO_InitVars(void)
 {
@@ -213,10 +231,10 @@ void IO_MixersProcess(void)
          case curve_positive_em:  l_Out_ft = ( l_In_ft<0 ? 0 : l_In_ft );   break;
          case curve_negative_em:  l_Out_ft = ( l_In_ft<0 ? l_In_ft : 0 );   break;
 
-         case curve_perso1_em: l_Out_ft = l_In_ft;                            break;
-         case curve_perso2_em: l_Out_ft = l_In_ft;                            break;
-         case curve_perso3_em: l_Out_ft = l_In_ft;                            break;
-         case curve_perso4_em: l_Out_ft = l_In_ft;                            break;
+         case curve_perso1_em: l_Out_ft = m_IO_CustomCurve(l_In_ft , 0);      break;
+         case curve_perso2_em: l_Out_ft = m_IO_CustomCurve(l_In_ft , 1);      break;
+         case curve_perso3_em: l_Out_ft = m_IO_CustomCurve(l_In_ft , 2);      break;
+         case curve_perso4_em: l_Out_ft = m_IO_CustomCurve(l_In_ft , 3);      break;
          default:              l_Out_ft = l_In_ft;                            break;
       }
 
@@ -296,4 +314,34 @@ float m_IO_ExpoCurve(float f_In, float f_Expo)
       retVal = (-1.0f)*pow((-1.0f)*f_In, abs(f_Expo) );
 
    return retVal;
+}
+
+
+float m_IO_CustomCurve(float f_In, uint8_t curve)
+{
+   float retval = 0.0;
+   float l_dx_ft;
+   float l_dy_ft;
+   float l_stepx_ft;
+   if( curve < CUSTOMCURVE_NBCURVE )
+   {
+      if( f_In > +1.0f ) f_In = +1.00f;
+      if( f_In < -1.0f ) f_In = -1.00f;
+
+      for( uint8_t point=1 ; point<CUSTOMCURVE_NBPOINT; point++ )
+      {
+         if( CustomCurve_x[point] < f_In )
+            continue; // evaluate next point
+
+         // CustomCurve_x[curve][point-1] < f_In <=  CustomCurve_x[curve][point]
+         // linear interpolation
+         l_dy_ft =    CustomCurve[curve][point] - CustomCurve[curve][point-1];
+         l_dx_ft =    CustomCurve_x[point]      - CustomCurve_x[point-1]; // always positive (normally always 25%)
+         l_stepx_ft = f_In                      - CustomCurve_x[point-1];
+
+         retval = l_stepx_ft * l_dy_ft / l_dx_ft  + CustomCurve[curve][point-1];
+         break; // quit loop
+      }
+   }
+   return retval;
 }
