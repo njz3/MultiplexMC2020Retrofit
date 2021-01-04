@@ -51,6 +51,8 @@ Name_Type Valid_Names[validity_max_em]={
 #define md_ChangeUInt16_Index(pVal,max)   ChangeUInt16(pVal, 1, 1, 0, max)
 #define md_ChangeUInt8_Index( pVal,max)   ChangeUInt8( pVal, 1,    0, max)
 
+#define float2PctRound(val)   ( (val<0.0f) ? (val-0.005f)*100.0f : (val+0.005f)*100.0f )
+
 bool ChangeUInt16(uint16_t *pVal, uint16_t stp_up, uint16_t stp_down, uint16_t min, uint16_t max) {
    bool edited = false;
    if (pVal==NULL)
@@ -285,7 +287,8 @@ struct display_line_ft100 : public display_line
     if (format!=NULL) {
       display_line::refresh_notfixed();
       char buf[20];
-      int i = (*pval)*100;
+      int i;
+      i = float2PctRound(*pval);
       sprintf(buf, format, i);
       Display.print(buf);
     }
@@ -505,7 +508,7 @@ void Update_ShowInputs( )
    int val;
    for( int i=0 ; i<NB_INPUTS ; i++ )
    {
-      val =  Inputs_var_pst[i].val_ft * 100.0f;
+      val =  float2PctRound(Inputs_var_pst[i].val_ft);
       sprintf(buf, mStrValue3Pct, val );
 
       if( i&1 ) // if odd
@@ -523,7 +526,7 @@ void Update_ShowOutputs( )
    int val;
    for( int i=0 ; i<NB_OUTPUTS ; i++ )
    {
-      val =  Outputs_pft[i] * 100.0f;
+      val =  float2PctRound(Outputs_pft[i]);
       sprintf(buf, mStrValue3Pct, val);
 
       if( i&1 ) // if odd
@@ -541,7 +544,7 @@ void Update_ShowServos( )
    int val;
    for( int i=0 ; i<NB_SERVOS ; i++ )
    {
-      val =  Outputs_pft[Servos_pst[i].out_idx_ui8] * 100.0f;
+      val =  float2PctRound( Outputs_pft[Servos_pst[i].out_idx_ui8] );
       sprintf(buf, mStrValue3Pct,val);
       Display.setCursor( 3, i*2+2 );
       Display.print(buf);
