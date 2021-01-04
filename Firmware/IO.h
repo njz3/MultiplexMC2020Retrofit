@@ -37,10 +37,10 @@ enum{
 enum{
    validity_never_em=0,
    validity_always_em,
-   validity_bp1_em,
-   validity_bp2_em,
-   validity_bp3_em,
-   validity_bp4_em,
+   validity_SwA0_em,
+   validity_SwA1_em,
+   validity_SwB0_em,
+   validity_SwB1_em,
    validity_max_em
 };
 
@@ -50,10 +50,10 @@ enum BUTTONS_ID : uint16_t
   BTN_MINUS = (1<<1),
   BTN_NEXT  = (1<<2),
   BTN_PAGE  = (1<<3),
-  BTN_DUAL_RATE = (1<<4),
-  BTN_COUPLING  = (1<<5),
-  BTN_OPT1_CH  = (1<<6),
-  BTN_OPT2_CH  = (1<<7),
+  BTN_SWA   = (1<<4),
+  BTN_SWB   = (1<<5),
+  BTN_SWC   = (1<<6),
+  BTN_SWD   = (1<<7),
 };
 
 typedef struct {

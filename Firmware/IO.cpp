@@ -87,10 +87,10 @@ void IO_ReadButtons()
   if (digitalRead(3)==0) buttons |= BUTTONS_ID::BTN_MINUS;
   if (digitalRead(4)==0) buttons |= BUTTONS_ID::BTN_NEXT;
   if (digitalRead(5)==0) buttons |= BUTTONS_ID::BTN_PAGE;
-  if (digitalRead(6)==0) buttons |= BUTTONS_ID::BTN_DUAL_RATE;
-  if (digitalRead(7)==0) buttons |= BUTTONS_ID::BTN_COUPLING;
-  if (digitalRead(8)==0) buttons |= BUTTONS_ID::BTN_OPT1_CH;
-  if (digitalRead(9)==0) buttons |= BUTTONS_ID::BTN_OPT2_CH;
+  if (digitalRead(6)==0) buttons |= BUTTONS_ID::BTN_SWA;
+  if (digitalRead(7)==0) buttons |= BUTTONS_ID::BTN_SWB;
+  if (digitalRead(8)==0) buttons |= BUTTONS_ID::BTN_SWC;
+  if (digitalRead(9)==0) buttons |= BUTTONS_ID::BTN_SWD;
 
   LastButtonsPressed = ButtonsPressed;
   ButtonsPressed = buttons;
@@ -160,13 +160,39 @@ void IO_MixersProcess(void)
 
    for(int i=0; i<NB_MIXERS; i++)
    {
-      if( Mixers_pst[i].valid_ui8 == validity_never_em ) /* TODO, only the never case is handled for now */
+      switch(Mixers_pst[i].valid_ui8)
       {
-         continue; // skip
-      }
-      else
-      {
-         //All other case considered as always!
+         case validity_never_em:
+            continue; // skip (goto next mixer)
+            break;
+
+         case validity_always_em:
+            // this mixer is alway applied, then let the loop run
+            break;
+
+         case validity_SwA0_em:
+            if( IS_RELEASED(BUTTONS_ID::BTN_SWA) ) // if switch A pulled up to vcc (released)
+               continue; // we skip this mixer, which shall applies only if Switch A = 0
+            break;
+
+         case validity_SwA1_em:
+            if( IS_PRESSED(BUTTONS_ID::BTN_SWA) ) // if switch A tied to ground (pressed)
+               continue; // we skip this mixer, which shall applies only if Switch A = 1
+            break;
+
+         case validity_SwB0_em:
+            if( IS_RELEASED(BUTTONS_ID::BTN_SWB) ) // if switch B pulled up to vcc (released)
+               continue;  // we skip this mixer, which shall applies only if Switch B = 0
+            break;
+
+         case validity_SwB1_em:
+            if( IS_PRESSED(BUTTONS_ID::BTN_SWB) ) // if switch A tied to ground (pressed)
+               continue; // we skip this mixer, which shall applies only if Switch B = 1
+            break;
+
+         default:
+            continue; // skip (goto next mixer)
+            break;
       }
 
       // get related input
