@@ -35,11 +35,16 @@ void setup() {
   } else {
     Serial.println(mLoadConfig);
     Display.println(mLoadConfig);
+
     if (Config::LoadConfigFromEEPROM()<0) {
       Display.println(mWrongConfig);
+#if 0 // If EEPROM config is wong, config structure already contain deflault value from Flash
+      // no need to force reset and resave the default config
       Config::ResetConfig();
       Config::SaveConfigToEEPROM();
+#endif
     }
+
     delay(200);
   }
   
@@ -51,7 +56,7 @@ void setup() {
   
   delay(200);
   Display.print(mNChanEq);
-  Display.println(Config::ConfigFile.NBchannels);
+  Display.println(7);
   
   Display.print(mOutputPinEq);
   Display.println(OUTPUT_PIN);

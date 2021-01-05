@@ -8,8 +8,6 @@
 
 namespace Config {
 
-EEPROM_CONFIG ConfigFile;
-
 byte const g_VersionTag = 0x00;
 
 
