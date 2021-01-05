@@ -16,8 +16,8 @@ typedef char Name_Type[6]; // caution /0 takes one char  (so max string is 5char
 Name_Type Inputs_Names[NB_INPUTS]={
       "M1","M2","M3","M4",
       "T1","T2","T3","T4",
-      "A5","A6"
-      "V0","V0"
+      "A5","A6",
+      "V0","V1"
 };
 
 Name_Type Outputs_Names[NB_OUTPUTS]={
@@ -419,11 +419,11 @@ uint8_t g_CalibMixer_select_ui8;
 void MakeDisplay_CalibMixer( )
 {
    Body.Delete();
-   Body.Lines[0] = (display_line*)new display_line_uint8_names( 0, " Calib Mixer " , mStr2Char,  &g_CalibMixer_select_ui8 , Mixers_Names);
+   Body.Lines[0] = (display_line*)new display_line_uint8_names( 0, " Calib Mixer " , mStr3Char,  &g_CalibMixer_select_ui8 , Mixers_Names);
    Body.Lines[1] = (display_line*)new display_line_uint8_names( 1, "   Input = ", mStr2Char,     &Mixers_pst[g_CalibMixer_select_ui8].in_idx_ui8, Inputs_Names );
-   Body.Lines[2] = (display_line*)new display_line_uint8_names( 2, "   Courbe= ", mStr2Char,     &Mixers_pst[g_CalibMixer_select_ui8].curve_ui8 , Curves_Names );
+   Body.Lines[2] = (display_line*)new display_line_uint8_names( 2, "   Courbe= ", mStr4Char,     &Mixers_pst[g_CalibMixer_select_ui8].curve_ui8 , Curves_Names );
    Body.Lines[3] = (display_line*)new display_line_int8(        3, "   Coef  = ", mStrValue3Pct, &Mixers_pst[g_CalibMixer_select_ui8].coef_si8);
-   Body.Lines[4] = (display_line*)new display_line_uint8_names( 4, "   Valid = ", mStr2Char,     &Mixers_pst[g_CalibMixer_select_ui8].valid_ui8, Valid_Names);
+   Body.Lines[4] = (display_line*)new display_line_uint8_names( 4, "   Valid = ", mStr4Char,     &Mixers_pst[g_CalibMixer_select_ui8].valid_ui8, Valid_Names);
    Body.Lines[5] = (display_line*)new display_line_uint8_names( 5, "   MixOut= ", mStr2Char,     &Mixers_pst[g_CalibMixer_select_ui8].out_idx_ui8, Outputs_Names);
 }
 
@@ -474,7 +474,7 @@ void MakeDisplay_ShowInputs( )
    Body.Lines[3] = (display_line*)new display_line( 3, "T1....% T2....%" );
    Body.Lines[4] = (display_line*)new display_line( 4, "T3....% T4....%" );
    Body.Lines[5] = (display_line*)new display_line( 5, "A5....% A6....%" );
-   Body.Lines[6] = (display_line*)new display_line( 6, "V1....%" );
+   Body.Lines[6] = (display_line*)new display_line( 6, "V0....% V1....%" );
 }
 
 void MakeDisplay_ShowOutputs( )
