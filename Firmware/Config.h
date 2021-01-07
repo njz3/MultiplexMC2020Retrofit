@@ -54,8 +54,8 @@ enum COMSPEED {
 // Note: USB based com (Leonardo, Due) can go up to 2000000 (2Mbps)
 #define PCSERIAL_BAUDRATE (COM1000000)
 
-int SaveConfigToEEPROM();
-int LoadConfigFromEEPROM();
+int SaveConfigToEEPROM( int Slot );
+int LoadConfigFromEEPROM( int Slot );
 void ResetConfig();
 
 }

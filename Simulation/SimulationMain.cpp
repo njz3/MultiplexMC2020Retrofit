@@ -34,7 +34,7 @@ int main()
    printf("Hello world!\n");
 
    Config::ResetConfig();
-   Config::SaveConfigToEEPROM();
+   Config::SaveConfigToEEPROM(0);
 
    for( int i=0 ; i<300 ; i++)
    {

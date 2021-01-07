@@ -105,7 +105,7 @@ void IO_ReadButtons();
 
 #define IS_PUSHED(btn) ((ButtonsPushed & (btn))!=0)
 #define IS_PRESSED(btn) ((ButtonsPressed & (btn))!=0)
-#define IS_RELEASED(btn) ((ButtonsReleased & (btn))!=0)
+#define IS_RELEASED(btn) ((ButtonsPressed & (btn))==0)
 
 void IO_InputsProcess(void);
 void IO_MixersProcess(void);

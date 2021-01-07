@@ -559,37 +559,41 @@ void MakeDisplay_ShowSetting( )
 {
    Body.Delete();
    Body.Lines[0] = (display_line*)new display_line( 0, " Setting" );
-   Body.Lines[1] = (display_line*)new display_line( 1, "  Mem0 Load" );
-   Body.Lines[2] = (display_line*)new display_line( 2, "  Mem0 Save" );
+   Body.Lines[1] = (display_line*)new display_line( 1, "  Mem A Load" );
+   Body.Lines[2] = (display_line*)new display_line( 2, "  Mem A Save" );
+   Body.Lines[3] = (display_line*)new display_line( 3, "  Mem B Load" );
+   Body.Lines[4] = (display_line*)new display_line( 4, "  Mem B Save" );
+   Body.Lines[5] = (display_line*)new display_line( 5, "  Mem C Load" );
+   Body.Lines[6] = (display_line*)new display_line( 6, "  Mem C Save" );
 }
 
 void Edit_Setting( )
 {
+   int retval=0;
+   if( 0 == IS_PUSHED(BUTTONS_ID::BTN_PLUS) ) // if button is not pushed --> nothing to do
+      return;
+
    switch( currentEditLine )
    {
-      case 1:
-         if( IS_PUSHED(BUTTONS_ID::BTN_PLUS) )
-         {
-            Display.setCursor( 12, currentEditLine*2 );
-            if( 0 == Config::LoadConfigFromEEPROM() )
-               Display.print("Ok");
-            else
-               Display.print("Nok");
-         }
-         break;
+      case 1:  retval = Config::LoadConfigFromEEPROM(0);  break;
+      case 2:  retval = Config::SaveConfigToEEPROM(0);    break;
 
-      case 2:
-         if( IS_PUSHED(BUTTONS_ID::BTN_PLUS) )
-         {
-            Config::SaveConfigToEEPROM();
-            Display.setCursor( 12, currentEditLine*2 );
-            Display.print("Done");
-         }
-         break;
+      case 3:  retval = Config::LoadConfigFromEEPROM(1);  break;
+      case 4:  retval = Config::SaveConfigToEEPROM(1);    break;
+
+      case 5:  retval = Config::LoadConfigFromEEPROM(2);  break;
+      case 6:  retval = Config::SaveConfigToEEPROM(2);    break;
 
       default:
+         return;
          break;
    }
+
+   Display.setCursor( 13, currentEditLine*2 );
+   if( 0 == retval )
+      Display.print("Ok ");
+   else
+      Display.print("Nok");
 }
 
 
@@ -711,7 +715,7 @@ void ProcessGUI()
 
       case PAGE_SETTING:
          Edit_Setting();
-         EditLineCursor(1,2);
+         EditLineCursor(1,6);
          break;
    }
 

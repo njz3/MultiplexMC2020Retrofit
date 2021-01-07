@@ -30,18 +30,18 @@ void setup() {
     Serial.println(mResetPinOn);
     Display.println(mResetPinOn);
     Config::ResetConfig();
-    Config::SaveConfigToEEPROM();
+    Config::SaveConfigToEEPROM(0);
     delay(200);
   } else {
     Serial.println(mLoadConfig);
     Display.println(mLoadConfig);
 
-    if (Config::LoadConfigFromEEPROM()<0) {
+    if (Config::LoadConfigFromEEPROM(0)<0) {
       Display.println(mWrongConfig);
 #if 0 // If EEPROM config is wong, config structure already contain deflault value from Flash
       // no need to force reset and resave the default config
       Config::ResetConfig();
-      Config::SaveConfigToEEPROM();
+      Config::SaveConfigToEEPROM(0);
 #endif
     }
 
