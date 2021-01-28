@@ -4,7 +4,7 @@
 #include "CRC.h"
 
 namespace CRC {
-  
+
 #if defined(MC2020_MEGA)
 
 // https://stackoverflow.com/questions/51752284/how-to-calculate-crc8-in-c

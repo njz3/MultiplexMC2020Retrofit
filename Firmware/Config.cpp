@@ -4,110 +4,154 @@
 #include "Config.h"
 #include <EEPROM.h>
 #include "CRC.h"
+#include "IO.h"
+
+#define SLOT0_START_ADDR   (0)
+#define SLOT1_START_ADDR   (300)
+#define SLOT2_START_ADDR   (600)
 
 namespace Config {
 
-EEPROM_CONFIG ConfigFile;
+byte const g_VersionTag = 0x04;
 
-const char* ChannelNames[] = {
-  "Prof. ", 
-  "Direc.",
-  "Gaz   ",
-  "Ailern",
-  "Flap  ",
-  "Train ",
-  "TrmPrf",
-  "TrmDir",
-  "TrmAil",
-};
 
-int SaveConfigToEEPROM()
+int SaveConfigToEEPROM( int Slot )
 {
-  if (EEPROM.length()<sizeof(EEPROM_CONFIG)) {
-    return -1;
-  }
-  // Pointer to record
-  byte* pBlock = (byte*)&ConfigFile;  
-  // Compute CRC8 to detect wrong eeprom data
-  byte crc8 = CRC::crc8x(0, pBlock+1, sizeof(EEPROM_CONFIG)-1);
-  // Update CRC in record
-  ConfigFile.CRC8 = crc8;
-  // Write record to EEPROM
-  for (int i = 0 ; i < (int)sizeof(EEPROM_CONFIG); i++) {
-    EEPROM.write(i, pBlock[i]);
-  }
-  return 1;
+   byte* pBlock;       // Pointer to data to be written
+   int EE_Addr=0;      // EEPROM Address to be written
+   byte crc8 = 0xFF;
+
+   switch(Slot)
+   {
+      case 0:  EE_Addr=SLOT0_START_ADDR; break;
+      case 1:  EE_Addr=SLOT1_START_ADDR; break;
+      case 2:  EE_Addr=SLOT2_START_ADDR; break;
+      default: EE_Addr=SLOT0_START_ADDR; break;
+   }
+
+   /* TODO Check size*/
+  //if (EEPROM.length()<sizeof(Inputs_cfg_pst)) {
+  //  return -1;
+  //}
+
+   // Write VersionTag and update crc
+   EEPROM.update(EE_Addr++,g_VersionTag); // Version tag
+   crc8 = CRC::crc8x(crc8, &g_VersionTag, 1);
+
+   // Write Inputs_cfg and update crc
+   pBlock = (byte*)Inputs_cfg_pst;
+   for( int i = 0; i < (int) sizeof(Inputs_cfg_pst); i++ )
+   {
+      EEPROM.update(EE_Addr++, pBlock[i]);
+   }
+   crc8 = CRC::crc8x(crc8, pBlock, sizeof(Inputs_cfg_pst));
+
+   // Write Mixers_pst and update crc
+   pBlock = (byte*)Mixers_pst;
+   for( int i = 0; i < (int) sizeof(Mixers_pst); i++ )
+   {
+      EEPROM.update(EE_Addr++, pBlock[i]);
+   }
+   crc8 = CRC::crc8x(crc8, pBlock, sizeof(Mixers_pst));
+
+   // Write Servos_pst and update crc
+   pBlock = (byte*)Servos_pst;
+   for( int i = 0; i < (int) sizeof(Servos_pst); i++ )
+   {
+      EEPROM.update(EE_Addr++, pBlock[i]);
+   }
+   crc8 = CRC::crc8x(crc8, pBlock, sizeof(Servos_pst));
+
+   // Write crc
+   EEPROM.write(EE_Addr++, crc8);
+
+   return 0;
 }
 
-int LoadConfigFromEEPROM()
+int LoadConfigFromEEPROM( int Slot )
 {
-  if (EEPROM.length()<sizeof(EEPROM_CONFIG)) {
-    return -1;
-  }
-  // Pointer to a new record on MCU stack
-  EEPROM_CONFIG newCfg;
-  byte* pBlock = (byte*)&newCfg;
-  // Read new record from EEPROM
-  for (int i = 0 ; i < (int)sizeof(EEPROM_CONFIG); i++) {
-    pBlock[i] = EEPROM.read(i);
-  }
-  // Compute CRC8 to detect wrong eeprom data
-  byte crc8 = CRC::crc8x(0, pBlock+1, sizeof(EEPROM_CONFIG)-1);
-  // Check CRC match?
-  if (crc8 != newCfg.CRC8) {
-    // Wrong CRC
-    return -2;
-  }
-  // Ok, store new config
-  ConfigFile = newCfg;
-  return 1;
+   byte *pBlock;       // Pointer
+   int EE_Addr = 0;    // EEPROM Address to be read
+   byte crc8 = 0xFF;
+
+   // temporary variables to check crc (could be avoided if we read twice the EEPROM)
+   byte l_VersionTag;
+   input_cfg_tst Inputs_cfg_temp_pst[NB_INPUTS];
+   mixers_tst Mixers_temp_pst[NB_MIXERS];
+   servos_tst Servos_temp_pst[NB_SERVOS];
+
+   switch(Slot)
+   {
+      case 0:  EE_Addr=SLOT0_START_ADDR; break;
+      case 1:  EE_Addr=SLOT1_START_ADDR; break;
+      case 2:  EE_Addr=SLOT2_START_ADDR; break;
+      default: EE_Addr=SLOT0_START_ADDR; break;
+   }
+
+
+   /* TODO Check size*/
+   //if (EEPROM.length()<sizeof(EEPROM_CONFIG)) {
+   //  return -1;
+   //}
+
+   // Read version and update crc
+   l_VersionTag = EEPROM.read(EE_Addr++);
+   crc8 = CRC::crc8x(crc8, &l_VersionTag, 1);
+
+   // Read Inputs_cfg and update crc
+   pBlock = (byte*)Inputs_cfg_temp_pst;
+   for( int i = 0; i < (int) sizeof(Inputs_cfg_temp_pst); i++ )
+   {
+      pBlock[i] = EEPROM.read(EE_Addr++);
+   }
+   crc8 = CRC::crc8x(crc8, pBlock, sizeof(Inputs_cfg_temp_pst) );
+
+   // Read Mixers_temp_pst and update crc
+   pBlock = (byte*)Mixers_temp_pst;
+   for( int i = 0; i < (int) sizeof(Mixers_temp_pst); i++ )
+   {
+      pBlock[i] = EEPROM.read(EE_Addr++);
+   }
+   crc8 = CRC::crc8x(crc8, pBlock, sizeof(Mixers_temp_pst) );
+
+
+   // Read Servos_temp_pst and update crc
+   pBlock = (byte*)Servos_temp_pst;
+   for( int i = 0; i < (int) sizeof(Servos_temp_pst); i++ )
+   {
+      pBlock[i] = EEPROM.read(EE_Addr++);
+   }
+   crc8 = CRC::crc8x(crc8, pBlock, sizeof(Servos_temp_pst) );
+
+
+   if( l_VersionTag != g_VersionTag )  // If Wrong Version
+   {
+      return -3;
+   }
+
+   if( crc8 != EEPROM.read(EE_Addr++) )  // If Wrong CRC
+   {
+      return -2;
+   }
+
+   // Ok, store new config
+   for( int i = 0; i < NB_INPUTS; i++ )
+      Inputs_cfg_pst[i] = Inputs_cfg_temp_pst[i];
+
+   for( int i = 0; i < NB_MIXERS; i++ )
+      Mixers_pst[i] = Mixers_temp_pst[i];
+
+   for( int i = 0; i < NB_SERVOS; i++ )
+      Servos_pst[i] = Servos_temp_pst[i];
+
+   return 0;
 }
 
 void ResetConfig()
 {
-  // CONTROLLER
-  ConfigFile.options = 0;
 
-  // PPM PULSE MODULE
-  ConfigFile.frame_length_us = 20000;
-  ConfigFile.interval_us = 300;
-  ConfigFile.min_pulse_us = 800;
-  ConfigFile.max_pulse_us = 2400;
-  ConfigFile.NBchannels = NB_CHANNELS;
-
-  for(int i=0; i<MAX_CHANNELS; i++) {
-    ConfigFile.channels[i].channel = i+1;
-    ConfigFile.channels[i].options = 0;
-
-    if (i<9) {
-      strncpy(ConfigFile.channels[i].name, ChannelNames[i], 9);
-    } else {
-      char buf[20];
-      sprintf(buf, "C%2d   ", i+1);
-      strncpy(ConfigFile.channels[i].name, buf, 9);
-    }    
-    
-    ConfigFile.channels[i].rate = 2.0f;
-    ConfigFile.channels[i].master_channel = i;
-    ConfigFile.channels[i].min_us = 1000;
-    ConfigFile.channels[i].max_us = 2200;
-    ConfigFile.channels[i].trim_us = 0;
-    
-    if (i<4) {
-      ConfigFile.channels[i].min_mV = MIN_MANCHES_mV;
-      ConfigFile.channels[i].max_mV = MAX_MANCHES_mV;
-      ConfigFile.channels[i].trim_mV = ((MIN_MANCHES_mV + MAX_MANCHES_mV)>>1);
-    } else if (i>=6 && i<=8) {
-      ConfigFile.channels[i].min_mV = MIN_AUX_mV;
-      ConfigFile.channels[i].max_mV = MAX_AUX_mV;
-      ConfigFile.channels[i].trim_mV = ((MIN_AUX_mV + MAX_AUX_mV)>>1);
-    } else {
-      ConfigFile.channels[i].min_mV = MIN_AUX_mV;
-      ConfigFile.channels[i].max_mV = MAX_AUX_mV;
-      ConfigFile.channels[i].trim_mV = ((MIN_AUX_mV + MAX_AUX_mV)>>1);
-    } 
-  }
 }
+
 
 }
 
@@ -117,8 +161,11 @@ extern "C" char* sbrk(int incr);
 #else  // __ARM__
 extern char *__brkval;
 #endif  // __arm__
- 
+
 int freeMemory() {
+#ifdef SIMULATION_PC
+  return 0;
+#else
   char top;
 #ifdef __arm__
   return &top - reinterpret_cast<char*>(sbrk(0));
@@ -127,4 +174,5 @@ int freeMemory() {
 #else  // __arm__
   return __brkval ? &top - __brkval : &top - __malloc_heap_start;
 #endif  // __arm__
+#endif // SIMULATION_PC
 }

@@ -1,0 +1,8 @@
+/Simulation/bin
+/Simulation/obj
+/Simulation/*.depend
+/Firmware/*.bak
+/.cproject
+/.project
+/.settings/language.settings.xml
+/PrjEclipse/Debug

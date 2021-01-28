@@ -23,39 +23,40 @@ void setup() {
   Serial.println(mConfigureIOs);
   Display.println(mConfigureIOs);
   
-  InitIOs();
+  IO_InitPins();
 
   int resetPin = digitalRead(12);
   if (resetPin==0) {
     Serial.println(mResetPinOn);
     Display.println(mResetPinOn);
     Config::ResetConfig();
-    Config::SaveConfigToEEPROM();
+    Config::SaveConfigToEEPROM(0);
     delay(200);
   } else {
     Serial.println(mLoadConfig);
     Display.println(mLoadConfig);
-    if (Config::LoadConfigFromEEPROM()<0) {
+
+    if (Config::LoadConfigFromEEPROM(0)<0) {
       Display.println(mWrongConfig);
+#if 0 // If EEPROM config is wong, config structure already contain deflault value from Flash
+      // no need to force reset and resave the default config
       Config::ResetConfig();
-      Config::SaveConfigToEEPROM();
+      Config::SaveConfigToEEPROM(0);
+#endif
     }
+
     delay(200);
   }
   
   Serial.println(mPPMStarted);
   Display.println(mPPMStarted);
   
-  ppmEncoder.PPM_INTERVAL_LENGTH_us = Config::ConfigFile.interval_us;
-  ppmEncoder.PPM_FRAME_LENGTH_us = Config::ConfigFile.frame_length_us;
-  ppmEncoder.MIN_us = Config::ConfigFile.min_pulse_us;
-  ppmEncoder.MAX_us = Config::ConfigFile.max_pulse_us;
   // Nombre de voies
-  ppmEncoder.begin(OUTPUT_PIN, Config::ConfigFile.NBchannels);
+  ppmEncoder.begin(OUTPUT_PIN, 7);
   
   delay(200);
   Display.print(mNChanEq);
-  Display.println(Config::ConfigFile.NBchannels);
+  Display.println(7);
   
   Display.print(mOutputPinEq);
   Display.println(OUTPUT_PIN);
@@ -70,10 +71,22 @@ void setup() {
 
 
 void loop() {
-  
-  ReadValues();
-  ProcessValues();
-  ReadButtons();
-  
-  ProcessGUI();
+   //Task_Adc2Ppm(); //removed from here: done in interuption context
+   IO_ReadButtons();
+   ProcessGUI();
 }
+
+
+/**
+ * Read Adc, Process Mixage and calculate the servomechanism values (usec).
+ * Normally executed every 20 ms.
+ * Done once before to send the ppm sequence7
+ */
+void Task_Adc2Ppm(void)
+{
+   IO_InputsProcess();
+   IO_MixersProcess();
+   IO_ServosProcess();
+   IO_PpmSetChannels();
+}
+

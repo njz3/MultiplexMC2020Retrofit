@@ -3,6 +3,7 @@
 #include "Display.h"
 #include "RC_PPMEncoder.h"
 #include "Resources.h"
+#include "Config.h"
 
 
 int currentEditLine = 0;
@@ -10,45 +11,135 @@ int currentEditLine = 0;
 int currentDisplayValuesPage = 0;
 int currentDisplayValuesMode = 0;
 
-bool ChangeInt16(int16_t *pVal, int16_t stp, int16_t min, int16_t max) {
-  bool edited = false;
-  if (IS_PRESSED(BUTTONS_ID::BTN_PLUS)) {
-    edited = true;
-    if (pVal!=NULL) {
-      *pVal += stp;
-      if (*pVal>max)
-        *pVal = max;
-    }
-  }
-  if (IS_PRESSED(BUTTONS_ID::BTN_MINUS)) {
-    edited = true;
-    if (pVal!=NULL) {
-      *pVal -= stp;
-      if (*pVal<min)
-        *pVal = min;
-    }
-  }
+typedef char Name_Type[6]; // caution /0 takes one char  (so max string is 5char long)
+
+Name_Type Inputs_Names[NB_INPUTS]={
+      "M1","M2","M3","M4",
+      "T1","T2","T3","T4",
+      "A5","A6",
+      "V0","V1"
+};
+
+Name_Type Outputs_Names[NB_OUTPUTS]={
+      "xA", "xB", "xC", "xD", "xE", "xF",
+      "xG", "xH", "xI", "xJ", "xK", "xL"
+};
+
+Name_Type Servos_Names[NB_SERVOS]={
+   "S1", "S2", "S3", "S4", "S5", "S6", "S7"
+};
+
+Name_Type Mixers_Names[NB_MIXERS]={
+      "X01", "X02", "X03", "X04", "X05", "X06",
+      "X07", "X08", "X09", "X10", "X11", "X12"
+};
+
+Name_Type Curves_Names[curve_max_em]={
+      "NRML",
+      "EXP1", "EXP2", "EXP3", "EXP4", "EXP5",
+      "ABS ", "POS ", "NEG ",
+      "PER1", "PER2", "PER3", "PER4"
+};
+
+Name_Type Valid_Names[validity_max_em]={
+      "JAMS","TJRS", "SwA0", "SwA1", "SwB0", "SwB1"
+};
+
+
+#define md_ChangeUInt16_Adc_mV(pVal)      ChangeUInt16(pVal, gd_STEP_TUNING_Up_mV, gd_STEP_TUNING_Down_mV, gd_MIN_mV, gd_MAX_mV)
+#define md_ChangeUInt16_us(pVal)          ChangeUInt16(pVal, gd_STEP_TUNING_Up_us, gd_STEP_TUNING_Down_us, gd_MIN_us, gd_MAX_us)
+#define md_ChangeUInt16_Index(pVal,max)   ChangeUInt16(pVal, 1, 1, 0, max)
+#define md_ChangeUInt8_Index( pVal,max)   ChangeUInt8( pVal, 1,    0, max)
+
+#define float2PctRound(val)   ( (val<0.0f) ? (val-0.005f)*100.0f : (val+0.005f)*100.0f )
+
+bool ChangeUInt16(uint16_t *pVal, uint16_t stp_up, uint16_t stp_down, uint16_t min, uint16_t max) {
+   bool edited = false;
+   if (pVal==NULL)
+      return edited;
+
+   if( IS_PRESSED(BUTTONS_ID::BTN_PLUS) )
+   {
+      if(*pVal != max) // if not already equal to max
+      {
+         edited = true;
+         if(*pVal < max-stp_up) // precheck overflow (avoid bug if max >= 32768 - step)
+            *pVal += stp_up;
+         else
+            *pVal = max;
+      }
+   }
+   else if( IS_PRESSED(BUTTONS_ID::BTN_MINUS) )
+   {
+      if(*pVal != min) // if not already equal to min
+      {
+         edited = true;
+         if( min+stp_down < *pVal)  // precheck underflow
+            *pVal -= stp_down;
+         else
+            *pVal = min;
+      }
+   }
   return edited;
 }
 
-bool ChangeInt8(uint8_t *pVal, int8_t stp, int8_t min, int8_t max) {
-  bool edited = false;
-  if (IS_PRESSED(BUTTONS_ID::BTN_PLUS)) {
-    edited = true;
-    if (pVal!=NULL) {
-      *pVal += stp;
-      if (*pVal>max)
-        *pVal = max;
-    }
-  }
-  if (IS_PRESSED(BUTTONS_ID::BTN_MINUS)) {
-    edited = true;
-    if (pVal!=NULL) {
-      *pVal -= stp;
-      if (*pVal<min)
-        *pVal = min;
-    }
-  }
+bool ChangeUInt8(uint8_t *pVal, uint8_t stp, uint8_t min, uint8_t max) {
+   bool edited = false;
+   if (pVal==NULL)
+      return edited;
+
+   if( IS_PRESSED(BUTTONS_ID::BTN_PLUS) )
+   {
+      if(*pVal != max) // if not already equal to max
+      {
+         edited = true;
+         if(*pVal < max-stp) // precheck overflow (avoid bug if max >= 256 - step)
+            *pVal += stp;
+         else
+            *pVal = max;
+      }
+   }
+   else if( IS_PRESSED(BUTTONS_ID::BTN_MINUS) )
+   {
+      if(*pVal != min) // if not already equal to min
+      {
+         edited = true;
+         if( min+stp < *pVal)
+            *pVal -= stp;
+         else
+            *pVal = min;
+      }
+   }
+  return edited;
+}
+
+bool ChangeInt8(int8_t *pVal, int8_t stp, int8_t min, int8_t max) {
+   bool edited = false;
+   if (pVal==NULL)
+      return edited;
+
+   if( IS_PRESSED(BUTTONS_ID::BTN_PLUS) )
+   {
+      if(*pVal != max) // if not already equal to max
+      {
+         edited = true;
+         if(*pVal < max-stp) // precheck overflow (avoid bug if max >= 256 - step)
+            *pVal += stp;
+         else
+            *pVal = max;
+      }
+   }
+   else if( IS_PRESSED(BUTTONS_ID::BTN_MINUS) )
+   {
+      if(*pVal != min) // if not already equal to min
+      {
+         edited = true;
+         if( min+stp < *pVal)
+            *pVal -= stp;
+         else
+            *pVal = min;
+      }
+   }
   return edited;
 }
 
@@ -59,7 +150,7 @@ bool ChangeBitUInt8(uint8_t *pVal, uint8_t bit) {
   }
   if (edited) {
     if ((*pVal & bit)!=0) {
-      *pVal &= ~bit;  
+      *pVal &= ~bit;
     } else {
       *pVal |= bit;
     }
@@ -83,32 +174,122 @@ struct display_line
     }
   };
   virtual ~display_line(){};
-  virtual void print() const {
+  virtual void print_fixed() const {
     if (fixed!=NULL) {
-      Display.setCursor(0, (row<<1)+1);
+#ifdef HEADER_FOOTER
+       Display.setCursor(0, 2*row+1);
+#else
+       Display.setCursor(0, 2*row);
+#endif // HEADER_FOOTER
+
       Display.print(fixed);
-      refresh();
+      refresh_notfixed();
     }
   };
-  virtual void refresh() const {
-    Display.setCursor(offset, (row<<1)+1);
+  virtual void refresh_notfixed() const {
+#ifdef HEADER_FOOTER
+     Display.setCursor(offset, 2*row+1);
+#else
+     Display.setCursor(offset, 2*row);
+#endif // HEADER_FOOTER
+
   };
 };
 
-struct display_line_int : public display_line
+struct display_line_uint16 : public display_line
 {
   public:
   const char *format;
-  int16_t *pval;
+  uint16_t *pval;
 
-  display_line_int(const byte row, const char *fxd, const char *fmt, int16_t *pval): display_line(row, fxd), format(fmt), pval(pval) { };
-  virtual ~display_line_int(){ };
+  display_line_uint16(const byte row, const char *fxd, const char *fmt, uint16_t *pval): display_line(row, fxd), format(fmt), pval(pval) { };
+  virtual ~display_line_uint16(){ };
 
-  virtual void refresh() const override  {
+  virtual void refresh_notfixed() const override  {
     if (format!=NULL) {
-      display_line::refresh();
+      display_line::refresh_notfixed();
       char buf[20];
       sprintf(buf, format, *pval);
+      Display.print(buf);
+    }
+  };
+};
+
+struct display_line_uint8 : public display_line
+{
+  public:
+  const char *format;
+  uint8_t *pval;
+
+  display_line_uint8(const byte row, const char *fxd, const char *fmt, uint8_t *pval): display_line(row, fxd), format(fmt), pval(pval) { };
+  virtual ~display_line_uint8(){ };
+
+  virtual void refresh_notfixed() const override  {
+    if (format!=NULL) {
+      display_line::refresh_notfixed();
+      char buf[20];
+      sprintf(buf, format, *pval);
+      Display.print(buf);
+    }
+  };
+};
+
+struct display_line_uint8_names : public display_line
+{
+  public:
+  const char *format;
+  uint8_t *pval;
+  Name_Type *names;
+
+  display_line_uint8_names(const byte row, const char *fxd, const char *fmt, uint8_t *pval, Name_Type *names):
+     display_line(row, fxd), format(fmt), pval(pval), names(names) { };
+  virtual ~display_line_uint8_names(){ };
+
+  virtual void refresh_notfixed() const override  {
+    if (format!=NULL) {
+      display_line::refresh_notfixed();
+      char buf[20];
+      sprintf(buf, format, names[*pval]);
+      Display.print(buf);
+    }
+  };
+};
+
+struct display_line_int8 : public display_line
+{
+  public:
+  const char *format;
+  int8_t *pval;
+
+  display_line_int8(const byte row, const char *fxd, const char *fmt, int8_t *pval): display_line(row, fxd), format(fmt), pval(pval) { };
+  virtual ~display_line_int8(){ };
+
+  virtual void refresh_notfixed() const override  {
+    if (format!=NULL) {
+      display_line::refresh_notfixed();
+      char buf[20];
+      sprintf(buf, format, *pval);
+      Display.print(buf);
+    }
+  };
+};
+
+struct display_line_ft100 : public display_line
+{
+  public:
+  const char *format;
+  float *pval;
+
+  display_line_ft100(const byte row, const char *fxd, const char *fmt, float *pval): display_line(row, fxd), format(fmt), pval(pval) { };
+  virtual ~display_line_ft100(){ };
+
+  virtual void refresh_notfixed() const override  {
+    if (format!=NULL) {
+      display_line::refresh_notfixed();
+      char buf[20];
+      int i;
+      i = float2PctRound(*pval);
+      sprintf(buf, format, i);
       Display.print(buf);
     }
   };
@@ -123,9 +304,9 @@ struct display_line_str : public display_line
   display_line_str(const byte row, const char *fxd, const char *fmt, const char *strg): display_line(row, fxd), format(fmt), str(strg) { };
   virtual ~display_line_str(){ };
 
-  virtual void refresh() const override {
+  virtual void refresh_notfixed() const override {
     if (format!=NULL) {
-      display_line::refresh();
+      display_line::refresh_notfixed();
       char buf[20];
       sprintf(buf, format, str);
       Display.print(buf);
@@ -136,8 +317,12 @@ struct display_line_str : public display_line
 struct ScreenBody
 {
   public:
-  const static int MAX_BODY_LINES = 7;
-  display_line* Lines[MAX_BODY_LINES] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+#ifdef HEADER_FOOTER
+   const static int MAX_BODY_LINES = 7;
+#else
+  const static int MAX_BODY_LINES = 8;
+#endif // HEADER_FOOTER
+  display_line* Lines[MAX_BODY_LINES] = {0};
 
   void Delete() {
   for (int i=0; i<(int)(sizeof(Lines)/sizeof(Lines[0])); i++) {
@@ -147,28 +332,38 @@ struct ScreenBody
       }
     }
   };
-  
+
   void SetCursor(byte col, byte row) {
-    Display.setCursor(col, (row<<1)+1);
+#ifdef HEADER_FOOTER
+     Display.setCursor(col, 2*row+1);
+#else
+     Display.setCursor(col, 2*row);
+#endif // HEADER_FOOTER
+
   };
-  
+
   void Print(const char *str) {
     Display.print(str);
   };
-  
-  void Print() {
+
+  void PrintAllFixed() {
     for(int row=0; row<MAX_BODY_LINES; row++) {
       if (Lines[row]!=NULL)
-        Lines[row]->print();
+        Lines[row]->print_fixed();
       else
-        Display.clearLine((row<<1)+1);
+#ifdef HEADER_FOOTER
+         Display.clearLine(2*row+1);
+#else
+      Display.clearLine(2*row);
+#endif // HEADER_FOOTER
+
     }
   };
-  
-  void Refresh() {
+
+  void RefreshAllNotFixed() {
     for(int row=0; row<MAX_BODY_LINES; row++) {
-      if (Lines[row]!=NULL) {    
-        Lines[row]->refresh();
+      if (Lines[row]!=NULL) {
+        Lines[row]->refresh_notfixed();
       }
     }
   };
@@ -176,462 +371,353 @@ struct ScreenBody
 
 ScreenBody Body;
 
-void MakeDisplayCurrentValuesPage()
+void EditLineCursor( int min, int max )
 {
-  char buff[20];
-  sprintf(buff, mFooterValues, currentDisplayValuesPage);
-  Display.setFooter(buff);
-  Display.refreshFooter();
-  
-  Body.Delete();
-  for (int i=0; i<ScreenBody::MAX_BODY_LINES; i++) {
-    int idx = (currentDisplayValuesPage*7) + i;
-    if (idx<Config::ConfigFile.NBchannels) {
-      switch(currentDisplayValuesMode) {
-        case 0:
-        default:
-        Body.Lines[i] = (display_line*)new display_line_int(i, Config::ConfigFile.channels[idx].name, mStrValue3Pct, &chan_pct[idx]);
-        break;
-        case 1:
-        Body.Lines[i] = (display_line*)new display_line_int(i, Config::ConfigFile.channels[idx].name, mStrValue4mV, &adc_mv[idx]);
-        break;
-        case 2:
-        Body.Lines[i] = (display_line*)new display_line_int(i, Config::ConfigFile.channels[idx].name, mStrValue4mV, &chan_mv[idx]);
-        break;
-        case 3:
-        Body.Lines[i] = (display_line*)new display_line_int(i, Config::ConfigFile.channels[idx].name, mStrValue4us, &chan_ms[idx]);
-        break;
-      }
-    }
-  }
+   if( IS_PUSHED(BUTTONS_ID::BTN_NEXT) )
+   {
+      Body.SetCursor(0, currentEditLine);
+      Body.Print(" ");
+      currentEditLine += 1;
+   }
+   if (currentEditLine < min || max < currentEditLine ) // if out of range reinit to min
+   {
+      currentEditLine = min;
+   }
+   Body.SetCursor(0, currentEditLine);
+   Body.Print(">");
 }
 
-void DisplayCurrentValues(PRINT_MODES print_mode) {
-
-  if (IS_PUSHED(BUTTONS_ID::BTN_NEXT)) {
-    currentDisplayValuesPage += 1;
-    int nb_pages = (Config::ConfigFile.NBchannels-1)/7;
-    if (currentDisplayValuesPage>nb_pages)
-      currentDisplayValuesPage = 0;
-    MakeDisplayCurrentValuesPage();
-    print_mode=PRINT_MODES::PRINT;
-  }
-  if (IS_PUSHED(BUTTONS_ID::BTN_PLUS)) {
-    currentDisplayValuesMode += 1;
-    if (currentDisplayValuesMode>=4)
-      currentDisplayValuesMode = 3;
-    MakeDisplayCurrentValuesPage();
-    print_mode=PRINT_MODES::PRINT;
-  }
-  if (IS_PUSHED(BUTTONS_ID::BTN_MINUS)) {
-    currentDisplayValuesMode -= 1;
-    if (currentDisplayValuesMode<0)
-      currentDisplayValuesMode = 0;
-    MakeDisplayCurrentValuesPage();
-    print_mode=PRINT_MODES::PRINT;
-  }
-  
-  if (print_mode==PRINT_MODES::PRINT) {
-    MakeDisplayCurrentValuesPage();
-    Body.Print();
-  } else {
-    Body.Refresh();
-  }
-}
-
-int currentDisplayChannelPage = 0;
-
-void MakeDisplayChannelPage()
+uint8_t g_CalibInput_select_ui8;
+uint16_t g_ProcessGUI_Cnt=0;
+void MakeDisplay_CalibInput( )
 {
-  char buff[20];
-  sprintf(buff, mFooterChan, Config::ConfigFile.channels[currentDisplayChannelPage].name);
-  Display.setFooter(buff);
-  Display.refreshFooter();
-  
-  Body.Delete();
-  Body.Lines[0] = (display_line*)new display_line_str(0, " Name: ", "%s  ", Config::ConfigFile.channels[currentDisplayChannelPage].name);
-  switch(currentDisplayValuesMode) {
-    case 0:
-    default:
-    Body.Lines[1] = (display_line*)new display_line_int(1, " P=", mStrValue3Pct, &chan_pct[currentDisplayChannelPage]);
-    break;
-    case 1:
-    Body.Lines[1] = (display_line*)new display_line_int(1, " A=", mStrValue4mV, &adc_mv[currentDisplayChannelPage]);
-    break;
-    case 2:
-    Body.Lines[1] = (display_line*)new display_line_int(1, " C=", mStrValue4mV, &chan_mv[currentDisplayChannelPage]);
-    break;
-    case 3:
-    Body.Lines[1] = (display_line*)new display_line_int(1, " T=", mStrValue4us, &chan_ms[currentDisplayChannelPage]);
-    break;
-  }
-  Body.Lines[2] = (display_line*)new display_line_int(2, " Min.A=", mStrValue4mV, &Config::ConfigFile.channels[currentDisplayChannelPage].min_mV);
-  Body.Lines[3] = (display_line*)new display_line_int(3, " Max.A=", mStrValue4mV, &Config::ConfigFile.channels[currentDisplayChannelPage].max_mV);
-  Body.Lines[4] = (display_line*)new display_line_int(4, " TrimA=", mStrValue4mV, &Config::ConfigFile.channels[currentDisplayChannelPage].trim_mV);
-  Body.Lines[5] = (display_line*)new display_line_int(5, " Min.T=", mStrValue4us, &Config::ConfigFile.channels[currentDisplayChannelPage].min_us);
-  Body.Lines[6] = (display_line*)new display_line_int(6, " Max.T=", mStrValue4us, &Config::ConfigFile.channels[currentDisplayChannelPage].max_us);
-  //Body.Lines[6] = (display_line*)new display_line_int(6, " TrimT=", mStrValue4us, &Config::ConfigFile.channels[currentDisplayChannelPage].trim_us);
+   Body.Delete();
+   Body.Lines[0] = (display_line*)new display_line_uint8_names( 0, " Calib. Input " , mStr2Char , &g_CalibInput_select_ui8, Inputs_Names );
+   Body.Lines[1] = (display_line*)new display_line_ft100(       1, "   Val= ", mStrValue3Pct, &Inputs_var_pst[g_CalibInput_select_ui8].val_ft);
+   Body.Lines[2] = (display_line*)new display_line_uint16(      2, "   Val= ", mStrValue4mV,  &Inputs_var_pst[g_CalibInput_select_ui8].adc_mV_ui16);
+   Body.Lines[3] = (display_line*)new display_line_uint16(      3, "   Min= ", mStrValue4mV,  &Inputs_cfg_pst[g_CalibInput_select_ui8].min_mV_ui16);
+   Body.Lines[4] = (display_line*)new display_line_uint16(      4, "   Med= ", mStrValue4mV,  &Inputs_cfg_pst[g_CalibInput_select_ui8].med_mV_ui16);
+   Body.Lines[5] = (display_line*)new display_line_uint16(      5, "   Max= ", mStrValue4mV,  &Inputs_cfg_pst[g_CalibInput_select_ui8].max_mV_ui16);
+   Body.Lines[6] = (display_line*)new display_line_uint16(      6, "        ", mStrValue05d,  &g_ProcessGUI_Cnt);
 }
 
-void DisplayChannels(PRINT_MODES print_mode) {
-  if (IS_PUSHED(BUTTONS_ID::BTN_NEXT)) {
-    Body.SetCursor(0, currentEditLine);
-    Body.Print(" ");
-    currentEditLine += 1;
-  }
-  if (currentEditLine>=7) {
-    currentEditLine = 0;
-  }
-  if (currentDisplayChannelPage>=Config::ConfigFile.NBchannels) {
-    currentDisplayChannelPage = Config::ConfigFile.NBchannels-1;
-    print_mode=PRINT_MODES::PRINT;
-  }
-  
-  if (print_mode==PRINT_MODES::PRINT) {
-    MakeDisplayChannelPage();
-    Body.Print();
-  } else {
-    Body.Refresh();
-  }
-
-  int idx = currentDisplayChannelPage;
-  Body.SetCursor(0, currentEditLine);
-  Body.Print(">");
-  bool edited = false;
-  switch(currentEditLine) {
-    case 0: {
-      edited = ChangeInt16(&currentDisplayChannelPage, 
-        1,
-        0,
-        Config::ConfigFile.NBchannels-1);
-    }
-    break;
-    case 1: {
-      if (IS_PUSHED(BUTTONS_ID::BTN_PLUS)) {
-        currentDisplayValuesMode += 1;
-        if (currentDisplayValuesMode>=4)
-          currentDisplayValuesMode = 3;
-        edited = true;
-      }if (IS_PUSHED(BUTTONS_ID::BTN_MINUS)) {
-        currentDisplayValuesMode -= 1;
-        if (currentDisplayValuesMode<0)
-          currentDisplayValuesMode = 0;
-        edited = true;
-      }
-    }
-    break;
-    case 2: {
-      ChangeInt16(&Config::ConfigFile.channels[idx].min_mV, 
-        STEP_TUNING_mV,
-        0,
-        Config::ConfigFile.channels[idx].max_mV);
-    }
-    break;
-    case 3: {
-      ChangeInt16(&Config::ConfigFile.channels[idx].max_mV, 
-        STEP_TUNING_mV,
-        Config::ConfigFile.channels[idx].min_mV,
-        5000);
-    }
-    break;
-    case 4: {
-      ChangeInt16(&Config::ConfigFile.channels[idx].trim_mV, 
-        STEP_TUNING_mV,
-        Config::ConfigFile.channels[idx].min_mV,
-        Config::ConfigFile.channels[idx].max_mV);
-    }
-    break;
-    case 5: {
-      ChangeInt16(&Config::ConfigFile.channels[idx].min_us, 
-        STEP_TUNING_us,
-        0,
-        Config::ConfigFile.channels[idx].max_us);
-    }
-    break;
-    case 6: {
-      ChangeInt16(&Config::ConfigFile.channels[idx].max_us, 
-        STEP_TUNING_us,
-        Config::ConfigFile.channels[idx].min_us,
-        5000);
-    }
-    break;
-    case 7: {
-      ChangeInt16(&Config::ConfigFile.channels[idx].trim_us, 
-        STEP_TUNING_us,
-        -((Config::ConfigFile.channels[idx].min_us+Config::ConfigFile.channels[idx].max_us)>>1),
-        (Config::ConfigFile.channels[idx].min_us+Config::ConfigFile.channels[idx].max_us)>>1);
-    }
-    break;
-    /*
-    case 7: {
-      if (IS_PUSHED(BUTTONS_ID::BTN_PLUS)) {
-        Config::ConfigFile.channels[idx].min_mV += STEP_TUNING_mV;
-        Config::ConfigFile.channels[idx].max_mV += STEP_TUNING_mV;
-      }
-      if (IS_PUSHED(BUTTONS_ID::BTN_MINUS)) {
-        Config::ConfigFile.channels[idx].min_mV -= STEP_TUNING_mV;
-        Config::ConfigFile.channels[idx].max_mV -= STEP_TUNING_mV;
-      }
-      if (Config::ConfigFile.channels[idx].min_mV<0)
-        Config::ConfigFile.channels[idx].min_mV = 0;
-      if (Config::ConfigFile.channels[idx].max_mV>5000)
-        Config::ConfigFile.channels[idx].max_mV = 5000;
-      if (Config::ConfigFile.channels[idx].min_mV>Config::ConfigFile.channels[idx].max_mV)
-        Config::ConfigFile.channels[idx].min_mV = Config::ConfigFile.channels[idx].max_mV;
-      if (Config::ConfigFile.channels[idx].max_mV<Config::ConfigFile.channels[idx].min_mV)
-        Config::ConfigFile.channels[idx].max_mV = Config::ConfigFile.channels[idx].min_mV;
-    }
-    break;*/
-
-  }
-  if (edited) {
-    MakeDisplayChannelPage();
-    Body.Print();
-  }
-}
-
-
-void MakeDisplayChannelsOptionsPage()
+uint8_t g_CalibServo_select_ui8;
+void MakeDisplay_CalibServo( )
 {
-  char buff[20];
-  sprintf(buff, mFooterChanOpt, Config::ConfigFile.channels[currentDisplayChannelPage].name);
-  Display.setFooter(buff);
-  Display.refreshFooter();
-  
-  Body.Delete();
-  Body.Lines[0] = (display_line*)new display_line_str(0, " Name: ", "%s  ", Config::ConfigFile.channels[currentDisplayChannelPage].name);
-  Body.Lines[1] = (display_line*)new display_line(1, " Signe ");
-  Body.Lines[2] = (display_line*)new display_line(2, " Coup. ");
-  Body.Lines[3] = (display_line*)new display_line(3, " Dual  ");
-  Body.Lines[4] = (display_line*)new display_line(4, " Ramp  ");
-  int master = Config::ConfigFile.channels[currentDisplayChannelPage].master_channel;
-  Body.Lines[5] = (display_line*)new display_line_str(5, " Mastr ", "%s  ", Config::ConfigFile.channels[master].name);
-  Body.Lines[6] = (display_line*)new display_line(6, " Rate  ");
+   Body.Delete();
+   Body.Lines[0] = (display_line*)new display_line_uint8_names( 0, " Calib. Servo "  , mStr2Char , &g_CalibServo_select_ui8, Servos_Names );
+   Body.Lines[1] = (display_line*)new display_line_uint16(      1, "   Val= ", mStrValue4us,  &Servos_us_pui16[g_CalibServo_select_ui8]);
+   Body.Lines[2] = (display_line*)new display_line_uint16(      2, "   Min= ", mStrValue4us, &Servos_pst[g_CalibServo_select_ui8].min_us_ui16);
+   Body.Lines[3] = (display_line*)new display_line_uint16(      3, "   Med= ", mStrValue4us, &Servos_pst[g_CalibServo_select_ui8].med_us_ui16);
+   Body.Lines[4] = (display_line*)new display_line_uint16(      4, "   Max= ", mStrValue4us, &Servos_pst[g_CalibServo_select_ui8].max_us_ui16);
+   Body.Lines[5] = (display_line*)new display_line_uint8_names( 5, "   Source = ", mStr2Char, &Servos_pst[g_CalibServo_select_ui8].out_idx_ui8, Outputs_Names);
+   Body.Lines[6] = (display_line*)new display_line_uint8_names( 6, "   TrInput= ", mStr2Char,   &Servos_pst[g_CalibServo_select_ui8].trim_idx_ui8, Inputs_Names );
+   Body.Lines[7] = (display_line*)new display_line_int8(        7, "   TrCoef=", mStrValue3Pct, &Servos_pst[g_CalibServo_select_ui8].trim_coef_si8);
 }
 
-
-void DisplayChannelsOptions(PRINT_MODES print_mode) {
-  if (IS_PUSHED(BUTTONS_ID::BTN_NEXT)) {
-    Body.SetCursor(0, currentEditLine);
-    Body.Print(" ");
-    currentEditLine += 1;
-  }
-  if (currentEditLine>=7) {
-    currentEditLine = 0;
-  }
-  if (currentDisplayChannelPage>=Config::ConfigFile.NBchannels) {
-    currentDisplayChannelPage = Config::ConfigFile.NBchannels-1;
-    print_mode=PRINT_MODES::PRINT;
-  }
-  
-  int idx = currentDisplayChannelPage;
-  if (print_mode==PRINT_MODES::PRINT) {
-    MakeDisplayChannelsOptionsPage();
-    Body.Print();
-  } else {
-    Body.Refresh();
-  
-    Body.Lines[1]->refresh();
-    if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_INVERTED)!=0)
-      Display.print("Invert");
-    else
-      Display.print("Normal");
-      
-    Body.Lines[2]->refresh();
-    if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_COUPLING)!=0)
-      Display.print("Yes");
-    else
-      Display.print("No ");
-          
-    Body.Lines[3]->refresh();
-    if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_DUALRATE)!=0)
-      Display.println("Yes");
-    else
-      Display.println("No ");
-  
-    Body.Lines[4]->refresh();
-    if ((Config::ConfigFile.channels[idx].options & CONFIG_CHANNEL_OPT_POWERLAW)!=0)
-      Display.println("Power ");
-    else
-      Display.println("Linear");
-  
-    Body.Lines[6]->refresh();
-    Display.print((int)(Config::ConfigFile.channels[idx].rate*1000.0));
-  }
-  
-  Body.SetCursor(0, currentEditLine);
-  Body.Print(">");
-
-  bool edited = false;
-  switch(currentEditLine) {
-    case 0: {
-      edited = ChangeInt16(&currentDisplayChannelPage, 1, 0, Config::ConfigFile.NBchannels-1);
-    }
-    break;
-    case 1: {
-      edited = ChangeBitUInt8(&Config::ConfigFile.channels[idx].options, CONFIG_CHANNEL_OPT_INVERTED);
-    }
-    break;
-    case 2: {
-      edited = ChangeBitUInt8(&Config::ConfigFile.channels[idx].options, CONFIG_CHANNEL_OPT_COUPLING);
-    }
-    break;
-    case 3: {
-      edited = ChangeBitUInt8(&Config::ConfigFile.channels[idx].options, CONFIG_CHANNEL_OPT_DUALRATE);
-    }
-    break;
-    case 4: {
-      edited = ChangeBitUInt8(&Config::ConfigFile.channels[idx].options, CONFIG_CHANNEL_OPT_POWERLAW);
-    }
-    break;
-    case 5: {
-      edited = ChangeInt8(&Config::ConfigFile.channels[idx].master_channel, 1, 0, Config::ConfigFile.NBchannels-1);
-    }
-    break;
-    case 6: {
-      if (IS_PRESSED(BUTTONS_ID::BTN_PLUS)) {
-        Config::ConfigFile.channels[idx].rate *= 1.02f;
-        edited = true;
-      }
-      if (IS_PRESSED(BUTTONS_ID::BTN_MINUS)) {
-        Config::ConfigFile.channels[idx].rate *= (1.0f/(1.02f));
-        edited = true;
-      }
-      if (Config::ConfigFile.channels[idx].rate<0.25)
-        Config::ConfigFile.channels[idx].rate = 0.25;
-      if (Config::ConfigFile.channels[idx].rate>=4.0) 
-        Config::ConfigFile.channels[idx].rate = 4.0;
-    }
-    break;
-  }
-      
-  if (edited) {
-    MakeDisplayChannelsOptionsPage();
-    Body.Print();
-  }
-}
-
-void MakePPMPage()
+uint8_t g_CalibMixer_select_ui8;
+void MakeDisplay_CalibMixer( )
 {
-  Display.setFooter(mFooterConfPPM);
-  Display.refreshFooter();
-
-  Body.Delete();
-  Body.Lines[0] = (display_line*)new display_line_int(0, " #Chan=", mStrValue2d , &Config::ConfigFile.NBchannels);
-  Body.Lines[1] = (display_line*)new display_line_int(1, " Frame=", mStrValue5us, &Config::ConfigFile.frame_length_us);
-  Body.Lines[2] = (display_line*)new display_line_int(2, " Inter=", mStrValue5us, &Config::ConfigFile.interval_us);
-  Body.Lines[3] = (display_line*)new display_line_int(3, " Min.T=", mStrValue5us, &Config::ConfigFile.min_pulse_us);
-  Body.Lines[4] = (display_line*)new display_line_int(4, " Max.T=", mStrValue5us, &Config::ConfigFile.max_pulse_us);
-  Body.Lines[5] = (display_line*)new display_line(5, mSaveAll);
+   Body.Delete();
+   Body.Lines[0] = (display_line*)new display_line_uint8_names( 0, " Calib Mixer " , mStr3Char,  &g_CalibMixer_select_ui8 , Mixers_Names);
+   Body.Lines[1] = (display_line*)new display_line_uint8_names( 1, "   Input = ", mStr2Char,     &Mixers_pst[g_CalibMixer_select_ui8].in_idx_ui8, Inputs_Names );
+   Body.Lines[2] = (display_line*)new display_line_uint8_names( 2, "   Courbe= ", mStr4Char,     &Mixers_pst[g_CalibMixer_select_ui8].curve_ui8 , Curves_Names );
+   Body.Lines[3] = (display_line*)new display_line_int8(        3, "   Coef  = ", mStrValue3Pct, &Mixers_pst[g_CalibMixer_select_ui8].coef_si8);
+   Body.Lines[4] = (display_line*)new display_line_uint8_names( 4, "   Valid = ", mStr4Char,     &Mixers_pst[g_CalibMixer_select_ui8].valid_ui8, Valid_Names);
+   Body.Lines[5] = (display_line*)new display_line_uint8_names( 5, "   MixOut= ", mStr2Char,     &Mixers_pst[g_CalibMixer_select_ui8].out_idx_ui8, Outputs_Names);
 }
 
-void DisplayPPM(PRINT_MODES print_mode) {
-
-  if (IS_PUSHED(BUTTONS_ID::BTN_NEXT)) {
-    Body.SetCursor(0, currentEditLine);
-    Body.Print(" ");
-    currentEditLine += 1;
-  }
-  if (currentEditLine>=6) {
-    currentEditLine = 0;
-  }
-
-  if (print_mode==PRINT_MODES::PRINT) {
-    MakePPMPage();
-    Body.Print();
-  } else {
-    Body.Refresh();
-  }
-  
-  Body.SetCursor(0, currentEditLine);
-  Body.Print(">");
-
-  bool edited = false;
-  switch(currentEditLine) {
-    case 0: {
-      edited = ChangeInt16(&Config::ConfigFile.NBchannels, 
-        1, 1, MAX_CHANNELS);
-    }
-    break;
-    
-    case 1: {
-      edited = ChangeInt16(&Config::ConfigFile.frame_length_us, 
-        STEP_TUNING_us<<1, 500, 32000);
-    }
-    break;
-    case 2: {
-      edited = ChangeInt16(&Config::ConfigFile.interval_us, 
-        STEP_TUNING_us, 100, 1000);
-    }
-    break;
-   case 3: {
-      edited = ChangeInt16(&Config::ConfigFile.min_pulse_us, 
-        STEP_TUNING_us, Config::ConfigFile.interval_us, Config::ConfigFile.max_pulse_us);
-    }
-    break;
-    case 4: {
-      edited = ChangeInt16(&Config::ConfigFile.max_pulse_us, 
-        STEP_TUNING_us, Config::ConfigFile.min_pulse_us, Config::ConfigFile.frame_length_us);
-    }
-    break;
-    case 5: {
-      if (IS_PUSHED(BUTTONS_ID::BTN_PLUS | BUTTONS_ID::BTN_MINUS)) {
-        Body.SetCursor(0, currentEditLine);
-        Body.Print(mSaving);
-        Config::SaveConfigToEEPROM();
-        Body.Print();
-      }
-    }
-    break;
-  }
-  if (edited) {
-    // Nombre de voies
-    ppmEncoder.setNbChannel(Config::ConfigFile.NBchannels);
-    ppmEncoder.PPM_INTERVAL_LENGTH_us = Config::ConfigFile.frame_length_us;
-    ppmEncoder.PPM_FRAME_LENGTH_us = Config::ConfigFile.interval_us;
-    ppmEncoder.MIN_us = Config::ConfigFile.min_pulse_us;
-    ppmEncoder.MAX_us = Config::ConfigFile.max_pulse_us;
-  }
-      
-}
-
-
-
-enum STATE_MACHINE : uint8_t
+void Edit_CalibInput( )
 {
-  INIT = 0,
-  DISPLAY_VALUES,
-  DISPLAY_CHANNELS_OPTIONS,
-  DISPLAY_CHANNELS_TUNE,
-  DISPLAY_PPM,
-  MAX_STATES,
+   switch( currentEditLine )
+   {
+      case 3:  md_ChangeUInt16_Adc_mV( &Inputs_cfg_pst[g_CalibInput_select_ui8].min_mV_ui16 ); break;
+      case 4:  md_ChangeUInt16_Adc_mV( &Inputs_cfg_pst[g_CalibInput_select_ui8].med_mV_ui16 ); break;
+      case 5:  md_ChangeUInt16_Adc_mV( &Inputs_cfg_pst[g_CalibInput_select_ui8].max_mV_ui16 ); break;
+      default: break;
+   }
+}
+
+void Edit_CalibServo( )
+{
+   switch( currentEditLine )
+   {
+      case 2:  md_ChangeUInt16_Adc_mV( &Servos_pst[g_CalibServo_select_ui8].min_us_ui16 ); break;
+      case 3:  md_ChangeUInt16_Adc_mV( &Servos_pst[g_CalibServo_select_ui8].med_us_ui16 ); break;
+      case 4:  md_ChangeUInt16_Adc_mV( &Servos_pst[g_CalibServo_select_ui8].max_us_ui16 ); break;
+      case 5:  ChangeUInt8(  &Servos_pst[g_CalibServo_select_ui8].out_idx_ui8  , 1 ,   0 , NB_OUTPUTS-1 ); break;
+      case 6:  ChangeUInt8(  &Servos_pst[g_CalibServo_select_ui8].trim_idx_ui8 , 1 ,   0 , NB_INPUTS-1  ); break;
+      case 7:  ChangeInt8(   &Servos_pst[g_CalibServo_select_ui8].trim_coef_si8, 5 , -95 , 95); break;
+      default: break;
+   }
+}
+
+void Edit_CalibMixer( )
+{
+   switch( currentEditLine )
+   {
+      case 1:  ChangeUInt8(  &Mixers_pst[g_CalibMixer_select_ui8].in_idx_ui8  , 1 ,    0 , NB_INPUTS-1        );     break;
+      case 2:  ChangeUInt8(  &Mixers_pst[g_CalibMixer_select_ui8].curve_ui8   , 1 ,    0 , curve_max_em-1     );     break;
+      case 3:  ChangeInt8(   &Mixers_pst[g_CalibMixer_select_ui8].coef_si8    , 1 , -120 , 120                );     break;
+      case 4:  ChangeUInt8(  &Mixers_pst[g_CalibMixer_select_ui8].valid_ui8   , 1 ,    0 , validity_max_em-1  );     break;
+      case 5:  ChangeUInt8(  &Mixers_pst[g_CalibMixer_select_ui8].out_idx_ui8 , 1 ,    0 , NB_OUTPUTS-1       );     break;
+   }
+}
+
+void MakeDisplay_ShowInputs( )
+{
+   Body.Delete();
+   Body.Lines[0] = (display_line*)new display_line( 0, "Affich. Inputs" );
+
+   Body.Lines[1] = (display_line*)new display_line( 1, "M1....% M2....%" );
+   Body.Lines[2] = (display_line*)new display_line( 2, "M3....% M4....%" );
+   Body.Lines[3] = (display_line*)new display_line( 3, "T1....% T2....%" );
+   Body.Lines[4] = (display_line*)new display_line( 4, "T3....% T4....%" );
+   Body.Lines[5] = (display_line*)new display_line( 5, "A5....% A6....%" );
+   Body.Lines[6] = (display_line*)new display_line( 6, "V0....% V1....%" );
+}
+
+void MakeDisplay_ShowOutputs( )
+{
+   Body.Delete();
+   Body.Lines[0] = (display_line*)new display_line( 0, "Affich. MixOuts" );
+   Body.Lines[1] = (display_line*)new display_line( 1, "xA....% xB....%" );
+   Body.Lines[2] = (display_line*)new display_line( 2, "xC....% xD....%" );
+   Body.Lines[3] = (display_line*)new display_line( 3, "xE....% xF....%" );
+   Body.Lines[4] = (display_line*)new display_line( 4, "xG....% xH....%" );
+   Body.Lines[5] = (display_line*)new display_line( 5, "xI....% xJ....%" );
+   Body.Lines[6] = (display_line*)new display_line( 6, "xK....% xL....%" );
+}
+
+void MakeDisplay_ShowServos( )
+{
+   Body.Delete();
+   Body.Lines[0] = (display_line*)new display_line( 0, "Affich. Servos" );
+   Body.Lines[1] = (display_line*)new display_line( 1, "S1 +...% ....us" );
+   Body.Lines[2] = (display_line*)new display_line( 2, "S2" );
+   Body.Lines[3] = (display_line*)new display_line( 3, "S3" );
+   Body.Lines[4] = (display_line*)new display_line( 4, "S4" );
+   Body.Lines[5] = (display_line*)new display_line( 5, "S5" );
+   Body.Lines[6] = (display_line*)new display_line( 6, "S6" );
+   Body.Lines[7] = (display_line*)new display_line( 7, "S7" );
+}
+
+void Update_ShowInputs( )
+{
+   char buf[8];
+   int val;
+   for( int i=0 ; i<NB_INPUTS ; i++ )
+   {
+      val =  float2PctRound(Inputs_var_pst[i].val_ft);
+      sprintf(buf, mStrValue3Pct, val );
+
+      if( i&1 ) // if odd
+         Display.setCursor( 8+2, (i/2)*2+2 );
+      else // if even
+         Display.setCursor(  2, (i/2)*2+2 );
+
+      Display.print(buf);
+   }
+}
+
+void Update_ShowOutputs( )
+{
+   char buf[8];
+   int val;
+   for( int i=0 ; i<NB_OUTPUTS ; i++ )
+   {
+      val =  float2PctRound(Outputs_pft[i]);
+      sprintf(buf, mStrValue3Pct, val);
+
+      if( i&1 ) // if odd
+         Display.setCursor( 8+2, (i/2)*2+2 );
+      else // if even
+         Display.setCursor(  2, (i/2)*2+2 );
+
+      Display.print(buf);
+   }
+}
+
+void Update_ShowServos( )
+{
+   char buf[8];
+   int val;
+   for( int i=0 ; i<NB_SERVOS ; i++ )
+   {
+      val =  float2PctRound( Outputs_pft[Servos_pst[i].out_idx_ui8] );
+      sprintf(buf, mStrValue3Pct,val);
+      Display.setCursor( 3, i*2+2 );
+      Display.print(buf);
+
+      sprintf(buf, mStrValue4us, Servos_us_pui16[i]);
+      Display.setCursor( 9, i*2+2 );
+      Display.print(buf);
+   }
+}
+
+void MakeDisplay_ShowSetting( )
+{
+   Body.Delete();
+   Body.Lines[0] = (display_line*)new display_line( 0, " Setting" );
+   Body.Lines[1] = (display_line*)new display_line( 1, "  Mem A Load" );
+   Body.Lines[2] = (display_line*)new display_line( 2, "  Mem A Save" );
+   Body.Lines[3] = (display_line*)new display_line( 3, "  Mem B Load" );
+   Body.Lines[4] = (display_line*)new display_line( 4, "  Mem B Save" );
+   Body.Lines[5] = (display_line*)new display_line( 5, "  Mem C Load" );
+   Body.Lines[6] = (display_line*)new display_line( 6, "  Mem C Save" );
+}
+
+void Edit_Setting( )
+{
+   int retval=0;
+   if( 0 == IS_PUSHED(BUTTONS_ID::BTN_PLUS) ) // if button is not pushed --> nothing to do
+      return;
+
+   switch( currentEditLine )
+   {
+      case 1:  retval = Config::LoadConfigFromEEPROM(0);  break;
+      case 2:  retval = Config::SaveConfigToEEPROM(0);    break;
+
+      case 3:  retval = Config::LoadConfigFromEEPROM(1);  break;
+      case 4:  retval = Config::SaveConfigToEEPROM(1);    break;
+
+      case 5:  retval = Config::LoadConfigFromEEPROM(2);  break;
+      case 6:  retval = Config::SaveConfigToEEPROM(2);    break;
+
+      default:
+         return;
+         break;
+   }
+
+   Display.setCursor( 13, currentEditLine*2 );
+   if( 0 == retval )
+      Display.print("Ok ");
+   else
+      Display.print("Nok");
+}
+
+
+enum PAGES_en : uint8_t
+{
+   PAGE_INIT=0,
+   PAGE_SHOW_INPUTS,
+   PAGE_SHOW_OUTPUTS,
+   PAGE_SHOW_SERVOS,
+   PAGE_CALIB_INPUTS,
+   PAGE_CALIB_MIXERS,
+   PAGE_CALIB_SERVOS,
+   PAGE_SETTING,
+   PAGE_MAX
 };
 
-uint8_t state = STATE_MACHINE::INIT;
+uint8_t g_Page = PAGE_INIT;
 
-void ProcessGUI() {
-  
-  PRINT_MODES prt = PRINT_MODES::REFRESH;
-  if (IS_PUSHED(BUTTONS_ID::BTN_PAGE) || (state==INIT)) {
-    state +=1;
-    if (state>=STATE_MACHINE::MAX_STATES)
-      state = 0;
-    Display.clearBody();
-    prt = PRINT_MODES::PRINT;
-  }
-  
-  switch(state) {
-    case DISPLAY_VALUES:
-      DisplayCurrentValues(prt);
-      break;
-    case DISPLAY_CHANNELS_OPTIONS:
-      DisplayChannelsOptions(prt);
-      break;
-    case DISPLAY_CHANNELS_TUNE:
-      DisplayChannels(prt);
-      break;
-    case DISPLAY_PPM:
-      DisplayPPM(prt);
-      break;
-  }
+void ProcessGUI()
+{
+   g_ProcessGUI_Cnt++;
+
+   if( IS_PUSHED(BUTTONS_ID::BTN_PAGE) || g_Page == PAGE_INIT )
+   {
+      Display.clearBody();
+      if (++g_Page >= PAGE_MAX)
+         g_Page = 1;
+
+      switch( g_Page )
+      {
+         case PAGE_SHOW_INPUTS:
+            MakeDisplay_ShowInputs();
+            break;
+
+         case PAGE_SHOW_OUTPUTS:
+            MakeDisplay_ShowOutputs();
+            break;
+
+         case PAGE_SHOW_SERVOS:
+            MakeDisplay_ShowServos();
+            break;
+
+         case PAGE_CALIB_INPUTS:
+            g_CalibInput_select_ui8 = 0;
+            MakeDisplay_CalibInput();
+            break;
+
+         case PAGE_CALIB_SERVOS:
+            g_CalibServo_select_ui8=0;
+            MakeDisplay_CalibServo();
+            break;
+
+         case PAGE_CALIB_MIXERS:
+            g_CalibMixer_select_ui8=0;
+            MakeDisplay_CalibMixer();
+            break;
+
+         case PAGE_SETTING:
+            MakeDisplay_ShowSetting();
+            break;
+      }
+      currentEditLine = 0;
+      Body.PrintAllFixed();
+   }
+
+
+   switch( g_Page )
+   {
+      case PAGE_SHOW_INPUTS:
+         Update_ShowInputs();
+         break;
+
+      case PAGE_SHOW_OUTPUTS:
+         Update_ShowOutputs();
+         break;
+
+      case PAGE_SHOW_SERVOS:
+         Update_ShowServos();
+         break;
+
+      case PAGE_CALIB_INPUTS:
+         if( currentEditLine == 0 ) /* if the 1st line */
+         {
+            if( md_ChangeUInt8_Index( &g_CalibInput_select_ui8 , NB_INPUTS-1) )
+               MakeDisplay_CalibInput();
+         }
+         else
+         {
+            Edit_CalibInput();
+         }
+         EditLineCursor(0,5);
+         break;
+
+      case PAGE_CALIB_SERVOS:
+         if( currentEditLine == 0 ) /* if the 1st line */
+         {
+            if( md_ChangeUInt8_Index( &g_CalibServo_select_ui8 , NB_SERVOS-1) )
+               MakeDisplay_CalibServo();
+         }
+         else
+         {
+            Edit_CalibServo();
+         }
+         EditLineCursor(0,7);
+         break;
+
+      case PAGE_CALIB_MIXERS:
+         if( currentEditLine == 0 ) /* if the 1st line */
+         {
+            if( md_ChangeUInt8_Index( &g_CalibMixer_select_ui8 , NB_MIXERS-1) )
+               MakeDisplay_CalibMixer();
+         }
+         else
+         {
+            Edit_CalibMixer();
+         }
+         EditLineCursor(0,5);
+         break;
+
+      case PAGE_SETTING:
+         Edit_Setting();
+         EditLineCursor(1,6);
+         break;
+   }
+
+   Body.RefreshAllNotFixed();
 }

@@ -35,7 +35,7 @@ CDisplay Display;
 void CDisplay::begin() {
 
 // Does not seem to be useful
-/*  
+/*
 #if defined(ARDUINO_AVR_MEGA2560)
   pinMode(SDA, OUTPUT);
   pinMode(SCL, OUTPUT);
@@ -76,24 +76,27 @@ void CDisplay::begin() {
 
 void CDisplay::cleanup(void)
 {
-  #ifndef TEST_MEM
+#ifndef TEST_MEM
   u8x8.clear();
 
+#ifdef HEADER_FOOTER
   setSmallFont();
   u8x8.inverse();
   u8x8.print(header);
   u8x8.setCursor(0,15);
   u8x8.print(footer);
+#endif // HEADER_FOOTER
   u8x8.noInverse();
   setNormalFont();
   u8x8.setCursor(0,1);
-  #endif
+#endif // TEST_MEM
   col = 0;
   row = 1;
 }
 
 void CDisplay::refreshHeader()
 {
+#ifdef HEADER_FOOTER
   #ifndef TEST_MEM
   setSmallFont();
   u8x8.setCursor(0,0);
@@ -104,10 +107,12 @@ void CDisplay::refreshHeader()
   setNormalFont();
   u8x8.setCursor(col, row);
   #endif
+#endif // HEADER_FOOTER
 }
 
 void CDisplay::refreshFooter()
 {
+#ifdef HEADER_FOOTER
   #ifndef TEST_MEM
   setSmallFont();
   u8x8.setCursor(0,15);
@@ -118,6 +123,7 @@ void CDisplay::refreshFooter()
   setNormalFont();
   u8x8.setCursor(col, row);
   #endif
+#endif // HEADER_FOOTER
 }
 
 void CDisplay::draw_bar(uint8_t c, uint8_t is_inverse)
@@ -204,7 +210,7 @@ void CDisplay::setHeader(const String& str) {
   setHeader(buf);
 }
 
-void CDisplay::setFooter(const String& str) { 
+void CDisplay::setFooter(const String& str) {
   char buf[20];
   str.toCharArray(buf, 20);
   buf[16]=0;
@@ -243,7 +249,12 @@ void CDisplay::clearLine(int row)
 void CDisplay::clearBody()
 {
 #ifndef TEST_MEM
-  for(int row=1; row<15; row++) {
+#ifdef HEADER_FOOTER
+  for(int row=1; row<15; row++)
+#else
+  for(int row=0; row<16; row++)
+#endif
+  {
     u8x8.clearLine(row);
   }
 #endif
@@ -297,9 +308,9 @@ void CDisplay::loop(void)
   u8x8.print((int)u8x8.getCols());
   u8x8.print("x");
   u8x8.print((int)u8x8.getRows());
-  
+
   delay(2000);
-   
+
   cleanup();
   for( i = 19; i > 0; i-- )
   {
@@ -308,7 +319,7 @@ void CDisplay::loop(void)
     u8x8.print("  ");
     delay(150);
   }
-  
+
   draw_bar(0, 1);
   for( c = 1; c < u8x8.getCols(); c++ )
   {
@@ -319,7 +330,7 @@ void CDisplay::loop(void)
   draw_bar(u8x8.getCols()-1, 0);
 
   cleanup();
-  u8x8.setFont(u8x8_font_amstrad_cpc_extended_f); 
+  u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
   for( d = 0; d < 8; d ++ )
   {
     for( r = 1; r < u8x8.getRows(); r++ )
@@ -361,7 +372,7 @@ void CDisplay::loop(void)
   for(i = 0; i < 100; i++ )
   {
     u8x8.drawString(0, 2, u8x8_u16toa(i, 5)); // U8g2 Build-In functions
-    delay(10);    
+    delay(10);
   }
 
   cleanup();
@@ -372,7 +383,7 @@ void CDisplay::loop(void)
     u8x8.drawGlyph(0, 4, '@'+c);
     delay(300);
   }
-  
+
 
   cleanup();
   u8x8.print("print \\n\n");
