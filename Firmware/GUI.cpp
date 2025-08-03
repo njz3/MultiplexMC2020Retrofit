@@ -475,6 +475,7 @@ void MakeDisplay_ShowInputs( )
    Body.Lines[4] = (display_line*)new display_line( 4, "T3....% T4....%" );
    Body.Lines[5] = (display_line*)new display_line( 5, "A5....% A6....%" );
    Body.Lines[6] = (display_line*)new display_line( 6, "V0....% V1....%" );
+   Body.Lines[7] = (display_line*)new display_line( 7, "SW............." );
 }
 
 void MakeDisplay_ShowOutputs( )
@@ -518,6 +519,21 @@ void Update_ShowInputs( )
 
       Display.print(buf);
    }
+   Display.setCursor(  3, 8+6 );
+   buf[0] = 0x30 + digitalRead(6);
+   buf[1] = 0x30 + digitalRead(7);
+   buf[2] = 0x30 + digitalRead(8);
+   buf[3] = 0x30 + digitalRead(9);
+   buf[4] = 0;
+   Display.print(buf);
+   Display.print(" ");
+   buf[0] = 0x30 + digitalRead(10);
+   buf[1] = 0x30 + digitalRead(11);
+   buf[2] = 0x30 + digitalRead(12);
+   buf[3] = 0x30 + digitalRead(13);
+   buf[4] = 0;
+   Display.print(buf);
+
 }
 
 void Update_ShowOutputs( )

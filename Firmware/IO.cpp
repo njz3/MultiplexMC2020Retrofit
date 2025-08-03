@@ -116,7 +116,10 @@ void IO_ReadButtons()
   buttonchanged = ButtonsPressed^LastButtonsPressed;
   if (buttonchanged!=0) {
     Serial.print("B=");
+
     Serial.println(buttonchanged);
+    Serial.print(" # ");
+    Serial.println(buttons);
     // Detect low->high transitions
     ButtonsPushed = buttonchanged & ButtonsPressed;
     // Detect high->low transitions
