@@ -9,6 +9,9 @@
 #define SLOT0_START_ADDR   (0)
 #define SLOT1_START_ADDR   (300)
 #define SLOT2_START_ADDR   (600)
+#define SLOT3_START_ADDR   (900)
+#define SLOT4_START_ADDR   (1200)
+#define SLOT5_START_ADDR   (1500)
 
 namespace Config {
 
@@ -26,6 +29,9 @@ int SaveConfigToEEPROM( int Slot )
       case 0:  EE_Addr=SLOT0_START_ADDR; break;
       case 1:  EE_Addr=SLOT1_START_ADDR; break;
       case 2:  EE_Addr=SLOT2_START_ADDR; break;
+      case 3:  EE_Addr=SLOT3_START_ADDR; break;
+      case 4:  EE_Addr=SLOT4_START_ADDR; break;
+      case 5:  EE_Addr=SLOT5_START_ADDR; break;
       default: EE_Addr=SLOT0_START_ADDR; break;
    }
 
@@ -85,6 +91,9 @@ int LoadConfigFromEEPROM( int Slot )
       case 0:  EE_Addr=SLOT0_START_ADDR; break;
       case 1:  EE_Addr=SLOT1_START_ADDR; break;
       case 2:  EE_Addr=SLOT2_START_ADDR; break;
+      case 3:  EE_Addr=SLOT3_START_ADDR; break;
+      case 4:  EE_Addr=SLOT4_START_ADDR; break;
+      case 5:  EE_Addr=SLOT5_START_ADDR; break;
       default: EE_Addr=SLOT0_START_ADDR; break;
    }
 

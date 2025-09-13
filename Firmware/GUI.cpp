@@ -583,6 +583,19 @@ void MakeDisplay_ShowSetting( )
    Body.Lines[6] = (display_line*)new display_line( 6, "  Mem C Save" );
 }
 
+
+void MakeDisplay_ShowSetting2( )
+{
+   Body.Delete();
+   Body.Lines[0] = (display_line*)new display_line( 0, " Setting" );
+   Body.Lines[1] = (display_line*)new display_line( 1, "  Mem D Load" );
+   Body.Lines[2] = (display_line*)new display_line( 2, "  Mem D Save" );
+   Body.Lines[3] = (display_line*)new display_line( 3, "  Mem E Load" );
+   Body.Lines[4] = (display_line*)new display_line( 4, "  Mem E Save" );
+   Body.Lines[5] = (display_line*)new display_line( 5, "  Mem F Load" );
+   Body.Lines[6] = (display_line*)new display_line( 6, "  Mem F Save" );
+}
+
 void Edit_Setting( )
 {
    int retval=0;
@@ -612,11 +625,40 @@ void Edit_Setting( )
       Display.print("Nok");
 }
 
+void Edit_Setting2( )
+{
+   int retval=0;
+   if( 0 == IS_PUSHED(BUTTONS_ID::BTN_PLUS) ) // if button is not pushed --> nothing to do
+      return;
+
+   switch( currentEditLine )
+   {
+      case 1:  retval = Config::LoadConfigFromEEPROM(3);  break;
+      case 2:  retval = Config::SaveConfigToEEPROM(3);    break;
+
+      case 3:  retval = Config::LoadConfigFromEEPROM(4);  break;
+      case 4:  retval = Config::SaveConfigToEEPROM(4);    break;
+
+      case 5:  retval = Config::LoadConfigFromEEPROM(5);  break;
+      case 6:  retval = Config::SaveConfigToEEPROM(5);    break;
+
+      default:
+         return;
+         break;
+   }
+
+   Display.setCursor( 13, currentEditLine*2 );
+   if( 0 == retval )
+      Display.print("Ok ");
+   else
+      Display.print("Nok");
+}
 
 enum PAGES_en : uint8_t
 {
    PAGE_INIT=0,
    PAGE_SETTING,
+   PAGE_SETTING2,
    PAGE_SHOW_INPUTS,
    PAGE_SHOW_OUTPUTS,
    PAGE_SHOW_SERVOS,
@@ -669,6 +711,10 @@ void ProcessGUI()
 
          case PAGE_SETTING:
             MakeDisplay_ShowSetting();
+            break;
+
+         case PAGE_SETTING2:
+            MakeDisplay_ShowSetting2();
             break;
       }
       currentEditLine = 0;
@@ -731,6 +777,10 @@ void ProcessGUI()
 
       case PAGE_SETTING:
          Edit_Setting();
+         EditLineCursor(1,6);
+         break;
+      case PAGE_SETTING2:
+         Edit_Setting2();
          EditLineCursor(1,6);
          break;
    }
